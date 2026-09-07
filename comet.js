@@ -8,10 +8,6 @@ html, body {
   height: 100%;
 }
 
-/* ---------- HIDE DEFAULT CURSOR ---------- */
-html, body, a, button, input, select, textarea, .game-btn, .dpad-btn, .carousel-track, .carousel-dot, .footer-socials a, .ship-back, .touch-stick, .touch-thrust {
-  cursor: none !important;
-}
 
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
