@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mars Space Exploration - Modern HUD UI</title>
+    <link rel="stylesheet" href="style.css">
     <style>
         :root {
             --hud-primary: #ff7733;
@@ -17,11 +18,38 @@
 
         body {
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden;
             background-color: #010002;
             font-family: 'Consolas', 'Courier New', monospace;
             user-select: none;
             color: #d8e5ee;
+        }
+
+        /* Fixed 3D Game Container Behind Overlay UI */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Header & Footer Stacking Context */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .site-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
         }
 
         /* --- CRT / STATIC SCREEN EFFECTS OVERLAY --- */
@@ -78,7 +106,7 @@
 
         /* --- TELEMETRY & OBJECTIVE READOUT (TOP-LEFT) --- */
         #telemetry-ui {
-            top: 24px;
+            top: 80px;
             left: 24px;
             width: 280px;
             padding: 16px;
@@ -149,7 +177,7 @@
 
         /* --- WAYFINDING RADAR (TOP-RIGHT) --- */
         #minimap-wrapper {
-            top: 24px;
+            top: 80px;
             right: 24px;
             width: 180px;
             height: 180px;
@@ -190,7 +218,7 @@
 
         /* --- COLLAPSIBLE CONTROLS HUD (BOTTOM CENTER) --- */
         #controls-ui {
-            bottom: 24px;
+            bottom: 60px;
             left: 50%;
             transform: translateX(-50%);
             width: 360px;
@@ -340,7 +368,21 @@
 </head>
 <body>
 
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- GLOBAL NAVIGATION HEADER -->
+    <header class="navbar">
+      <a href="index.html" class="logo">Ming Thong</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About Me</a>
+        <a href="game.html">Game</a>
+      </nav>
+    </header>
+
     <div class="hud-overlay"></div>
+
+    <div id="canvas-container"></div>
 
     <div id="loading" class="glass-panel">
         <div style="font-size: 13px; letter-spacing: 2px; color: var(--hud-primary);">INITIALIZING ARES FLIGHT HUD...</div>
@@ -412,6 +454,17 @@
         <button class="close-btn" onclick="closeCrashModal()">DISMISS TELEMETRY</button>
     </div>
 
+    <!-- GLOBAL FOOTER -->
+    <footer class="site-footer">
+      <p class="footer-text">© 2026 Ming Thong · Built from scratch</p>
+      <div class="footer-socials">
+        <a href="https://instagram.com/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
+        <a href="https://linkedin.com/in/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">LI</a>
+        <a href="https://github.com/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GH</a>
+      </div>
+    </footer>
+
+    <script src="particles.js"></script>
     <script>
         const MODEL_FILENAME = 'spaceshuttle.glb'; 
 
@@ -449,7 +502,7 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.95;
-        document.body.appendChild(renderer.domElement);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const ambientLight = new THREE.AmbientLight(0x8a3c20, 0.35);
         scene.add(ambientLight);
