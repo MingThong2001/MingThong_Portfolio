@@ -1,0 +1,996 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mars Space Exploration - Modern HUD UI</title>
+    <style>
+        :root {
+            --hud-primary: #ff7733;
+            --hud-secondary: #00f0ff;
+            --hud-alert: #ff2a5f;
+            --hud-bg: rgba(12, 6, 16, 0.55);
+            --hud-border: rgba(255, 119, 51, 0.35);
+            --hud-glass: rgba(255, 120, 50, 0.05);
+            --hud-glow: 0 0 15px rgba(255, 119, 51, 0.25);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #010002;
+            font-family: 'Consolas', 'Courier New', monospace;
+            user-select: none;
+            color: #d8e5ee;
+        }
+
+        /* --- CRT / STATIC SCREEN EFFECTS OVERLAY --- */
+        .hud-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+        }
+
+        .hud-overlay::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 100;
+            opacity: 0.6;
+        }
+
+        .hud-overlay::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(255,120,50,0.03) 0%, rgba(0,0,0,0.4) 100%);
+            animation: crtFlicker 0.15s infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes crtFlicker {
+            0% { opacity: 0.27; }
+            50% { opacity: 0.32; }
+            100% { opacity: 0.29; }
+        }
+
+        /* --- SHARED GLASS HUD CONTAINER STYLE --- */
+        .glass-panel {
+            background: var(--hud-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--hud-border);
+            border-radius: 12px;
+            box-shadow: var(--hud-glow);
+            position: absolute;
+            z-index: 10;
+            box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- TELEMETRY & OBJECTIVE READOUT (TOP-LEFT) --- */
+        #telemetry-ui {
+            top: 24px;
+            left: 24px;
+            width: 280px;
+            padding: 16px;
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 119, 51, 0.2);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            color: var(--hud-secondary);
+            text-transform: uppercase;
+        }
+
+        .hud-header .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--hud-secondary);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--hud-secondary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .data-group {
+            margin-bottom: 12px;
+        }
+
+        .data-label {
+            font-size: 10px;
+            color: #8fa3b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .data-val-large {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--hud-primary);
+            text-shadow: 0 0 8px rgba(255, 119, 51, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .flight-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(255, 119, 51, 0.15);
+        }
+
+        .metric-box {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 6px 8px;
+            border-radius: 6px;
+            border-left: 2px solid var(--hud-primary);
+        }
+
+        /* --- WAYFINDING RADAR (TOP-RIGHT) --- */
+        #minimap-wrapper {
+            top: 24px;
+            right: 24px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #minimap-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid rgba(255, 119, 51, 0.3);
+        }
+
+        #minimap {
+            border-radius: 50%;
+            display: block;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, rgba(255, 119, 51, 0.18) 0deg, transparent 60deg, transparent 360deg);
+            animation: sweep 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- COLLAPSIBLE CONTROLS HUD (BOTTOM CENTER) --- */
+        #controls-ui {
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 360px;
+            max-width: 90vw;
+            overflow: hidden;
+        }
+
+        #controls-header {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            color: var(--hud-primary);
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        #controls-header:hover {
+            background: rgba(255, 119, 51, 0.08);
+        }
+
+        #controls-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s;
+            padding: 0 16px;
+        }
+
+        #controls-ui.open #controls-body {
+            max-height: 180px;
+            padding: 4px 16px 14px 16px;
+            border-top: 1px solid rgba(255, 119, 51, 0.15);
+        }
+
+        .key-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 11px;
+            color: #b0c4de;
+        }
+
+        .key-badge {
+            background: rgba(255, 119, 51, 0.15);
+            border: 1px solid rgba(255, 119, 51, 0.4);
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 5px rgba(255, 119, 51, 0.2);
+        }
+
+        /* --- MODAL DIALOG HUD --- */
+        #crash-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.92);
+            width: 520px;
+            max-width: 88vw;
+            padding: 28px;
+            border: 1px solid var(--hud-alert);
+            box-shadow: 0 0 30px rgba(255, 42, 95, 0.25);
+            z-index: 30;
+            display: none;
+            opacity: 0;
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #crash-modal.active {
+            transform: translate(-50%, -50%) scale(1);
+            display: block;
+            opacity: 1;
+        }
+
+        #crash-modal h2 {
+            margin-top: 0;
+            color: var(--hud-alert);
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 42, 95, 0.3);
+            padding-bottom: 10px;
+        }
+
+        #crash-modal p, #crash-modal div {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #d0e0ed;
+        }
+
+        .portfolio-list {
+            margin-top: 12px;
+            padding-left: 18px;
+            color: var(--hud-secondary);
+        }
+
+        .portfolio-list li {
+            margin-bottom: 6px;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: rgba(255, 42, 95, 0.2);
+            color: #ffffff;
+            border: 1px solid var(--hud-alert);
+            padding: 10px 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: inherit;
+            display: block;
+            width: 100%;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--hud-alert);
+            box-shadow: 0 0 15px rgba(255, 42, 95, 0.6);
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 20;
+            padding: 24px 36px;
+        }
+
+        .target { color: var(--hud-alert); font-weight: bold; }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+
+    <div class="hud-overlay"></div>
+
+    <div id="loading" class="glass-panel">
+        <div style="font-size: 13px; letter-spacing: 2px; color: var(--hud-primary);">INITIALIZING ARES FLIGHT HUD...</div>
+        <div style="font-size:11px; color:#8ea8ba; margin-top: 8px;" id="load-progress">STREAMING GEOMETRY DATA</div>
+    </div>
+
+    <div id="telemetry-ui" class="glass-panel">
+        <div class="hud-header">
+            <span>SYS.NAV // V4.02</span>
+            <div class="status-dot"></div>
+        </div>
+
+        <div class="data-group">
+            <div class="data-label">SECTOR REGION</div>
+            <div id="sector" class="data-val-large" style="color: var(--hud-secondary);">SECTOR 7-G</div>
+        </div>
+
+        <div class="data-group">
+            <div class="data-label">CLOSEST TARGET BEACON</div>
+            <div id="waypoint" class="target">ACQUIRING LINK...</div>
+        </div>
+
+        <div class="flight-metrics">
+            <div class="metric-box">
+                <div class="data-label">ALTITUDE</div>
+                <div id="metric-alt" class="data-val-large" style="font-size:12px;">0.00 m</div>
+            </div>
+            <div class="metric-box">
+                <div class="data-label">VELOCITY</div>
+                <div id="metric-spd" class="data-val-large" style="font-size:12px;">0.00 kn</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="minimap-wrapper" class="glass-panel">
+        <div id="minimap-container">
+            <canvas id="minimap" width="168" height="168"></canvas>
+            <div class="radar-sweep"></div>
+        </div>
+    </div>
+
+    <div id="controls-ui" class="glass-panel">
+        <div id="controls-header" onclick="toggleControls()">
+            <span>[ FLIGHT MANUAL & TELEMETRY ]</span>
+            <span id="controls-toggle-icon">▲</span>
+        </div>
+        <div id="controls-body">
+            <div class="key-row">
+                <span>Steering (Yaw & Roll)</span>
+                <div><span class="key-badge">A</span> <span class="key-badge">D</span> / <span class="key-badge">ARROWS</span></div>
+            </div>
+            <div class="key-row">
+                <span>Main Thrusters</span>
+                <div><span class="key-badge">W</span> / <span class="key-badge">UP</span></div>
+            </div>
+            <div class="key-row">
+                <span>Overdrive Boost</span>
+                <div><span class="key-badge">SPACE</span></div>
+            </div>
+            <div style="margin-top:10px; font-style:italic; color:#7a93a5; font-size:10px; text-align: center;">
+                Locate vertical beacons to extract intel from fallen camps.
+            </div>
+        </div>
+    </div>
+
+    <div id="crash-modal" class="glass-panel">
+        <h2 id="modal-title">BASE CAMP ANOMALY DETECTED</h2>
+        <div id="modal-content">Extracting telemetry logs...</div>
+        <button class="close-btn" onclick="closeCrashModal()">DISMISS TELEMETRY</button>
+    </div>
+
+    <script>
+        const MODEL_FILENAME = 'spaceshuttle.glb'; 
+
+        function toggleControls() {
+            const ui = document.getElementById('controls-ui');
+            const icon = document.getElementById('controls-toggle-icon');
+            ui.classList.toggle('open');
+            icon.innerText = ui.classList.contains('open') ? '▼' : '▲';
+        }
+
+        const keys = { left: false, right: false, thrust: false, boost: false };
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.thrust = true;
+            if (e.code === 'Space') keys.boost = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.thrust = false;
+            if (e.code === 'Space') keys.boost = false;
+        });
+
+        // --- THREE.JS SCENE SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x140402, 0.0038);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1500);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.95;
+        document.body.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0x8a3c20, 0.35);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffbfa8, 2.2);
+        sunLight.position.set(150, 100, -120);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 10;
+        sunLight.shadow.camera.far = 350;
+        const d = 80;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        scene.add(sunLight);
+
+        const hemiLight = new THREE.HemisphereLight(0x5a2312, 0.010002, 0.4);
+        scene.add(hemiLight);
+
+        // --- ENVIRONMENT PARTICLES ---
+        const starCount = 2500;
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i++) {
+            const u = Math.random(), v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = 850 + Math.random() * 150;
+
+            starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            starPositions[i * 3 + 1] = Math.abs(r * Math.sin(phi) * Math.sin(theta)) + 15;
+            starPositions[i * 3 + 2] = r * Math.cos(phi);
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.9 });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+
+        // MARTIAN WIND-DRIFT DUST PARTICLES
+        const dustCount = 8000;
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPositions = new Float32Array(dustCount * 3);
+        const dustVelocities = new Float32Array(dustCount * 3);
+
+        for (let i = 0; i < dustCount; i++) {
+            dustPositions[i * 3] = (Math.random() - 0.5) * 350;
+            dustPositions[i * 3 + 1] = Math.random() * 90;
+            dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 350;
+
+            dustVelocities[i * 3] = 0.18 + Math.random() * 0.15;
+            dustVelocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02;
+            dustVelocities[i * 3 + 2] = 0.08 + Math.random() * 0.08;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+        const dustMat = new THREE.PointsMaterial({ color: 0xeb895b, size: 0.15, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending });
+        const dustField = new THREE.Points(dustGeo, dustMat);
+        scene.add(dustField);
+
+        // --- DUST DEVILS ---
+        const dustDevils = [];
+        function createDustDevil(x, z) {
+            const particleCount = 450;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(particleCount * 3);
+            const angles = new Float32Array(particleCount);
+            const heights = new Float32Array(particleCount);
+            const radii = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                const h = Math.random() * 80;
+                const r = (h / 80) * 8 + Math.random() * 1.5;
+                const a = Math.random() * Math.PI * 2;
+
+                heights[i] = h;
+                radii[i] = r;
+                angles[i] = a;
+
+                pos[i * 3] = x + Math.cos(a) * r;
+                pos[i * 3 + 1] = h;
+                pos[i * 3 + 2] = z + Math.sin(a) * r;
+            }
+
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0xdd7d4d, size: 0.25, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+            const pSystem = new THREE.Points(geo, mat);
+
+            scene.add(pSystem);
+            dustDevils.push({ system: pSystem, x: x, z: z, angles: angles, heights: heights, radii: radii, count: particleCount });
+        }
+
+        createDustDevil(120, -180);
+        createDustDevil(-220, -300);
+        createDustDevil(280, -420);
+
+        function updateAtmosphere() {
+            const pos = dustGeo.attributes.position.array;
+            for (let i = 0; i < dustCount; i++) {
+                pos[i * 3] += dustVelocities[i * 3];
+                pos[i * 3 + 1] += dustVelocities[i * 3 + 1];
+                pos[i * 3 + 2] += dustVelocities[i * 3 + 2];
+
+                if (pos[i * 3] - shipGroup.position.x > 175) pos[i * 3] -= 350;
+                if (pos[i * 3] - shipGroup.position.x < -175) pos[i * 3] += 350;
+                if (pos[i * 3 + 2] - shipGroup.position.z > 175) pos[i * 3 + 2] -= 350;
+                if (pos[i * 3 + 2] - shipGroup.position.z < -175) pos[i * 3 + 2] += 350;
+            }
+            dustGeo.attributes.position.needsUpdate = true;
+
+            dustDevils.forEach(dd => {
+                const pos = dd.system.geometry.attributes.position.array;
+                dd.x += 0.02;
+                for (let i = 0; i < dd.count; i++) {
+                    dd.angles[i] += 0.08;
+                    pos[i * 3] = dd.x + Math.cos(dd.angles[i]) * dd.radii[i];
+                    pos[i * 3 + 2] = dd.z + Math.sin(dd.angles[i]) * dd.radii[i];
+                }
+                dd.system.geometry.attributes.position.needsUpdate = true;
+            });
+        }
+
+        // --- VERY FINE DUST SHIP TRAIL PARTICLES (LEFT & RIGHT REAR ENDS) ---
+        const TRAIL_MAX_PARTICLES = 300;
+        const trailGeo = new THREE.BufferGeometry();
+        const trailPositions = new Float32Array(TRAIL_MAX_PARTICLES * 3);
+        const trailVelocities = new Float32Array(TRAIL_MAX_PARTICLES * 3);
+
+        for (let i = 0; i < TRAIL_MAX_PARTICLES; i++) {
+            trailPositions[i * 3] = 0;
+            trailPositions[i * 3 + 1] = -500;
+            trailPositions[i * 3 + 2] = 0;
+            trailVelocities[i * 3] = 0;
+            trailVelocities[i * 3 + 1] = 0;
+            trailVelocities[i * 3 + 2] = 0;
+        }
+
+        trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+
+        // Very fine dust material styling
+        const trailMat = new THREE.PointsMaterial({
+            color: 0xffaa77,
+            size: 0.12, // Extremely fine particle size
+            transparent: true,
+            opacity: 0.35,
+            blending: THREE.AdditiveBlending
+        });
+
+        const trailParticles = new THREE.Points(trailGeo, trailMat);
+        scene.add(trailParticles);
+
+        let trailIndex = 0;
+
+        function emitTrailParticles(shipPos, yaw, roll, isBoosting, currentSpeed) {
+            const positions = trailGeo.attributes.position.array;
+
+            // Rear left and right thruster offsets relative to ship transform
+            const rearOffset = 3.1;
+            const sideWidth = 1.45;
+
+            const emitCount = isBoosting ? 6 : (currentSpeed > 0.05 ? 3 : 1);
+
+            for (let e = 0; e < emitCount; e++) {
+                const isLeft = (trailIndex % 2 === 0);
+                const side = isLeft ? 1 : -1;
+
+                // Position calculation incorporating yaw rotation
+                const px = shipPos.x + Math.sin(yaw) * rearOffset + Math.cos(yaw) * sideWidth * side;
+                const py = shipPos.y + (Math.random() - 0.5) * 0.1;
+                const pz = shipPos.z + Math.cos(yaw) * rearOffset - Math.sin(yaw) * sideWidth * side;
+
+                // Micro-dispersion for fine dust effect
+                positions[trailIndex * 3] = px + (Math.random() - 0.5) * 0.15;
+                positions[trailIndex * 3 + 1] = py + (Math.random() - 0.5) * 0.1;
+                positions[trailIndex * 3 + 2] = pz + (Math.random() - 0.5) * 0.15;
+
+                // Slow atmospheric drift vectors
+                trailVelocities[trailIndex * 3] = Math.sin(yaw) * 0.08 + (Math.random() - 0.5) * 0.03;
+                trailVelocities[trailIndex * 3 + 1] = (Math.random() - 0.5) * 0.01;
+                trailVelocities[trailIndex * 3 + 2] = Math.cos(yaw) * 0.08 + (Math.random() - 0.5) * 0.03;
+
+                trailIndex = (trailIndex + 1) % TRAIL_MAX_PARTICLES;
+            }
+
+            // Slowly drift active fine dust trail particles in atmosphere
+            for (let i = 0; i < TRAIL_MAX_PARTICLES; i++) {
+                if (positions[i * 3 + 1] > -400) {
+                    positions[i * 3] += trailVelocities[i * 3];
+                    positions[i * 3 + 1] += trailVelocities[i * 3 + 1];
+                    positions[i * 3 + 2] += trailVelocities[i * 3 + 2];
+                }
+            }
+
+            trailGeo.attributes.position.needsUpdate = true;
+        }
+
+        // --- TERRAIN GENERATOR ---
+        const CHUNK_SIZE = 140;
+        const CHUNK_SEGMENTS = 100;
+        const activeChunks = new Map();
+
+        function hash(x, z) {
+            let n = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
+            return n - Math.floor(n);
+        }
+
+        function smoothNoise(x, z) {
+            const iX = Math.floor(x), iZ = Math.floor(z);
+            const fX = x - iX, fZ = z - iZ;
+            const u = fX * fX * (3.0 - 2.0 * fX), v = fZ * fZ * (3.0 - 2.0 * fZ);
+            const a = hash(iX, iZ), b = hash(iX + 1, iZ);
+            const c = hash(iX, iZ + 1), d = hash(iX + 1, iZ + 1);
+            return THREE.MathUtils.lerp(THREE.MathUtils.lerp(a, b, u), THREE.MathUtils.lerp(c, d, u), v);
+        }
+
+        function getBaseTerrainHeight(worldX, worldZ) {
+            let h = 0;
+            const macroNoise = smoothNoise(worldX * 0.0035, worldZ * 0.0035);
+            h += Math.pow(macroNoise, 2.2) * 85.0;
+            let ridgeNoise = Math.abs(smoothNoise(worldX * 0.015, worldZ * 0.015) - 0.5) * 2.0;
+            h += Math.pow(1.0 - ridgeNoise, 2.5) * 45.0;
+            h += smoothNoise(worldX * 0.05, worldZ * 0.05) * 14.0;
+            h += (smoothNoise(worldX * 0.15, worldZ * 0.15) - 0.5) * 5.5;
+            return h - 18.0;
+        }
+
+        function getTerrainHeight(worldX, worldZ) {
+            let baseH = getBaseTerrainHeight(worldX, worldZ);
+            for (let i = 0; i < crashSites.length; i++) {
+                const site = crashSites[i];
+                const dx = worldX - site.x;
+                const dz = worldZ - site.z;
+                const dist = Math.hypot(dx, dz);
+                const outerRadius = site.radius;
+                if (dist < outerRadius) {
+                    const innerRadius = outerRadius * 0.45;
+                    if (dist < innerRadius) {
+                        const bowlFactor = 1.0 - Math.pow(dist / innerRadius, 2);
+                        baseH -= bowlFactor * 7.5;
+                    } else {
+                        const rimFactor = Math.sin(((dist - innerRadius) / (outerRadius - innerRadius)) * Math.PI);
+                        baseH += rimFactor * 3.2;
+                    }
+                }
+            }
+            return baseH;
+        }
+
+        const terrainMat = new THREE.MeshStandardMaterial({ color: 0x6e2511, roughness: 0.95, metalness: 0.08, flatShading: true });
+
+        function createChunk(chunkX, chunkZ) {
+            const key = `${chunkX},${chunkZ}`;
+            if (activeChunks.has(key)) return;
+            const group = new THREE.Group();
+            const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, CHUNK_SEGMENTS, CHUNK_SEGMENTS);
+            geo.rotateX(-Math.PI / 2);
+            const pos = geo.attributes.position;
+            const startX = chunkX * CHUNK_SIZE, startZ = chunkZ * CHUNK_SIZE;
+
+            for (let i = 0; i < pos.count; i++) {
+                pos.setY(i, getTerrainHeight(startX + pos.getX(i), startZ + pos.getZ(i)));
+            }
+            geo.computeVertexNormals();
+            group.add(new THREE.Mesh(geo, terrainMat));
+            group.position.set(startX, 0, startZ);
+            scene.add(group);
+            activeChunks.set(key, group);
+        }
+
+        function updateTerrain(posX, posZ) {
+            const currentX = Math.floor(posX / CHUNK_SIZE), currentZ = Math.floor(posZ / CHUNK_SIZE);
+            for (let x = currentX - 2; x <= currentX + 2; x++) {
+                for (let z = currentZ - 2; z <= currentZ + 2; z++) createChunk(x, z);
+            }
+            for (const [key, chunkGroup] of activeChunks.entries()) {
+                const [cx, cz] = key.split(',').map(Number);
+                if (Math.abs(cx - currentX) > 3 || Math.abs(cz - currentZ) > 3) {
+                    scene.remove(chunkGroup);
+                    activeChunks.delete(key);
+                }
+            }
+        }
+
+        // --- BASE CAMPS & OBJECTIVES ---
+        const crashSites = [
+            {
+                id: 1, x: 0, z: -350, radius: 35, color: '#ff2a5f', colorHex: 0xff2a5f,
+                title: "CAMP ALPHA // FRONTEND ARCHITECTURE",
+                content: `Discovered encrypted system logs:<br>
+                <ul class="portfolio-list">
+                    <li><b>WebGL 3D Engine:</b> Custom shaders & responsive canvas rendering pipelines.</li>
+                    <li><b>E-Commerce Interface:</b> React & TypeScript micro-frontends built for scale.</li>
+                </ul>`
+            },
+            {
+                id: 2, x: 300, z: -200, radius: 35, color: '#00f0ff', colorHex: 0x00f0ff,
+                title: "CAMP BETA // BACKEND INFRASTRUCTURE",
+                content: `Discovered encrypted system logs:<br>
+                <ul class="portfolio-list">
+                    <li><b>Cloud Services:</b> Distributed Go/Node microservices managed via Kubernetes.</li>
+                    <li><b>Real-Time Sockets:</b> Multi-threaded bidirectional telemetry connections.</li>
+                </ul>`
+            },
+            {
+                id: 3, x: -300, z: -250, radius: 35, color: '#ffaa33', colorHex: 0xffaa33,
+                title: "CAMP GAMMA // AI COMPUTATION LAB",
+                content: `Discovered encrypted system logs:<br>
+                <ul class="portfolio-list">
+                    <li><b>Neural Pipelines:</b> Automated contextual analytics & streaming LLM modules.</li>
+                </ul>`
+            }
+        ];
+
+        function buildBaseCamps() {
+            crashSites.forEach((site) => {
+                const siteY = getTerrainHeight(site.x, site.z);
+                const campGroup = new THREE.Group();
+                campGroup.position.set(site.x, siteY, site.z);
+
+                const beamGeo = new THREE.CylinderGeometry(0.6, 2.5, 300, 16, 1, true);
+                const beamMat = new THREE.MeshBasicMaterial({
+                    color: site.colorHex,
+                    transparent: true,
+                    opacity: 0.35,
+                    blending: THREE.AdditiveBlending,
+                    side: THREE.DoubleSide
+                });
+                const beamMesh = new THREE.Mesh(beamGeo, beamMat);
+                beamMesh.position.set(0, 150, 0);
+                campGroup.add(beamMesh);
+
+                scene.add(campGroup);
+            });
+        }
+        buildBaseCamps();
+
+        let isCrashModalOpen = false;
+        let currentActiveSiteId = null;
+
+        function updateCrashSiteProximity(shipX, shipZ) {
+            let closestSite = null;
+            let minDistance = Infinity;
+
+            crashSites.forEach(site => {
+                const dist = Math.hypot(site.x - shipX, site.z - shipZ);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestSite = site;
+                }
+            });
+
+            document.getElementById('waypoint').innerText = `${closestSite.title.split('//')[0].trim()} (${Math.round(minDistance)}m)`;
+
+            if (minDistance < 35 && !isCrashModalOpen) {
+                if (currentActiveSiteId !== closestSite.id) openCrashModal(closestSite);
+            } else if (minDistance >= 45) {
+                currentActiveSiteId = null;
+            }
+        }
+
+        function openCrashModal(site) {
+            isCrashModalOpen = true;
+            currentActiveSiteId = site.id;
+            document.getElementById('modal-title').innerText = site.title;
+            document.getElementById('modal-content').innerHTML = site.content;
+            document.getElementById('crash-modal').classList.add('active');
+        }
+
+        window.closeCrashModal = function() {
+            isCrashModalOpen = false;
+            document.getElementById('crash-modal').classList.remove('active');
+        };
+
+        // --- MODERNIZED RADAR DRAWING ROUTINE ---
+        const mapCanvas = document.getElementById('minimap');
+        const mapCtx = mapCanvas.getContext('2d');
+        const RADAR_RANGE = 450;
+
+        function updateMinimap(playerX, playerZ, playerYaw) {
+            const width = mapCanvas.width;
+            const height = mapCanvas.height;
+            const cx = width / 2;
+            const cy = height / 2;
+            const radius = width / 2;
+
+            mapCtx.clearRect(0, 0, width, height);
+
+            mapCtx.save();
+            mapCtx.beginPath();
+            mapCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            mapCtx.clip();
+
+            mapCtx.fillStyle = 'rgba(8, 4, 12, 0.95)';
+            mapCtx.fillRect(0, 0, width, height);
+
+            mapCtx.strokeStyle = 'rgba(255, 119, 51, 0.2)';
+            mapCtx.lineWidth = 1;
+            [0.35, 0.7, 1.0].forEach(rRatio => {
+                mapCtx.beginPath();
+                mapCtx.arc(cx, cy, radius * rRatio, 0, Math.PI * 2);
+                mapCtx.stroke();
+            });
+
+            mapCtx.setLineDash([2, 4]);
+            mapCtx.beginPath();
+            mapCtx.moveTo(cx, 0); mapCtx.lineTo(cx, height);
+            mapCtx.moveTo(0, cy); mapCtx.lineTo(width, cy);
+            mapCtx.stroke();
+            mapCtx.setLineDash([]);
+
+            crashSites.forEach(site => {
+                const dx = site.x - playerX;
+                const dz = site.z - playerZ;
+
+                const rotatedX = dx * Math.cos(-playerYaw) - dz * Math.sin(-playerYaw);
+                const rotatedZ = dx * Math.sin(-playerYaw) + dz * Math.cos(-playerYaw);
+
+                let mapX = cx - (rotatedX / RADAR_RANGE) * radius;
+                let mapY = cy - (rotatedZ / RADAR_RANGE) * radius;
+
+                const distFromCenter = Math.hypot(mapX - cx, mapY - cy);
+                const maxAllowedDist = radius - 10;
+                if (distFromCenter > maxAllowedDist) {
+                    const angle = Math.atan2(mapY - cy, mapX - cx);
+                    mapX = cx + Math.cos(angle) * maxAllowedDist;
+                    mapY = cy + Math.sin(angle) * maxAllowedDist;
+                }
+
+                mapCtx.shadowColor = site.color;
+                mapCtx.shadowBlur = 8;
+                mapCtx.fillStyle = site.color;
+                mapCtx.beginPath();
+                mapCtx.arc(mapX, mapY, 4, 0, Math.PI * 2);
+                mapCtx.fill();
+                mapCtx.shadowBlur = 0;
+            });
+
+            mapCtx.fillStyle = '#00f0ff';
+            mapCtx.shadowColor = '#00f0ff';
+            mapCtx.shadowBlur = 10;
+            mapCtx.beginPath();
+            mapCtx.moveTo(cx, cy - 6);
+            mapCtx.lineTo(cx - 5, cy + 5);
+            mapCtx.lineTo(cx + 5, cy + 5);
+            mapCtx.closePath();
+            mapCtx.fill();
+
+            mapCtx.restore();
+        }
+
+        // --- SHIP CONTAINER & SHIP LOADING ---
+        const shipGroup = new THREE.Group();
+        scene.add(shipGroup);
+
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            MODEL_FILENAME,
+            (gltf) => {
+                const loadedModel = gltf.scene;
+                const box = new THREE.Box3().setFromObject(loadedModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                loadedModel.position.sub(center);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                if (maxDim > 0) {
+                    const scaleFactor = 6.2 / maxDim;
+                    loadedModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                }
+                loadedModel.rotation.y = Math.PI;
+                shipGroup.add(loadedModel);
+                document.getElementById('loading').style.display = 'none';
+            },
+            undefined,
+            (error) => {
+                document.getElementById('loading').innerHTML = '<span style="color:var(--hud-alert);">ERROR LOADING GLB MODEL</span>';
+            }
+        );
+
+        // --- MAIN RENDER LOOP ---
+        let posX = 0, posZ = 0;
+        let yawAngle = 0, rollAngle = 0;
+        let speed = 0.2;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isCrashModalOpen) {
+                const hasInput = keys.left || keys.right || keys.thrust || keys.boost;
+                const isAccelerating = keys.thrust || keys.boost;
+                const targetSpeed = keys.boost ? 1.4 : (isAccelerating ? 0.7 : (hasInput ? 0.3 : 0.0));
+                
+                speed = THREE.MathUtils.lerp(speed, targetSpeed, 0.06);
+
+                if (keys.left) yawAngle += 0.03;
+                if (keys.right) yawAngle -= 0.03;
+
+                const targetRoll = (keys.left ? -0.55 : 0) + (keys.right ? 0.55 : 0);
+                rollAngle = THREE.MathUtils.lerp(rollAngle, targetRoll, 0.08);
+
+                posX -= Math.sin(yawAngle) * speed;
+                posZ -= Math.cos(yawAngle) * speed;
+            }
+
+            const currentGroundY = getTerrainHeight(posX, posZ);
+            const targetY = Math.max(currentGroundY + 8.5, 5.0);
+
+            shipGroup.position.set(posX, targetY, posZ);
+            shipGroup.rotation.y = yawAngle;
+            shipGroup.rotation.z = rollAngle;
+
+            // Emit dual left/right rear fine dust trails
+            emitTrailParticles(shipGroup.position, yawAngle, rollAngle, keys.boost, speed);
+
+            const camDist = 14.5, camHeight = 5.2;
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, posX + Math.sin(yawAngle) * camDist, 0.08);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, posZ + Math.cos(yawAngle) * camDist, 0.08);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY + camHeight, 0.08);
+            camera.lookAt(posX - Math.sin(yawAngle) * 8.0, targetY, posZ - Math.cos(yawAngle) * 8.0);
+
+            document.getElementById('metric-alt').innerText = `${targetY.toFixed(1)} m`;
+            document.getElementById('metric-spd').innerText = `${(speed * 120).toFixed(0)} kn`;
+
+            updateTerrain(posX, posZ);
+            updateAtmosphere();
+            updateCrashSiteProximity(posX, posZ);
+            updateMinimap(posX, posZ, yawAngle);
+
+            sunLight.position.set(posX + 150, 100, posZ - 120);
+            starField.position.set(posX, 0, posZ);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
