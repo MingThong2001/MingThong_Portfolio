@@ -154,15 +154,33 @@ function createOcean(canvas){
     return{g,bell,tn,ph:R()*6,by:g.position.y,bx:g.position.x};
   });
 
+  /* water dispersal: a click sends a shockwave that shoves nearby particles, fish and jellyfish outward; they drift/spring back */
+  const sv=new Float32Array(SNOW*3),bw=new Float32Array(NB*3),RADIUS=30,rings=[],ringTex=sprite(1);
+  schools.forEach(S=>{S.o=new Float32Array(FISH*3);S.v=new Float32Array(FISH*3)});
+  jellies.forEach(J=>{J.o=new THREE.Vector3();J.v=new THREE.Vector3();J.g.userData.oz=0});
+  function shove(arr,i,qx,qy,qz,p,str){
+    let dx=qx-p.x,dy=qy-p.y,dz=qz-p.z;const d=Math.hypot(dx,dy,dz)||.01;
+    if(d>=RADIUS)return;const f=Math.pow(1-d/RADIUS,2)*str/d;
+    arr[i*3]+=dx*f;arr[i*3+1]+=dy*f;arr[i*3+2]+=dz*f;
+  }
+  function disperse(p){
+    const a=snowG.attributes.position,b=bubG.attributes.position;
+    for(let i=0;i<SNOW;i++)shove(sv,i,a.getX(i),a.getY(i),a.getZ(i),p,14);
+    for(let i=0;i<NB;i++)shove(bw,i,b.getX(i),b.getY(i),b.getZ(i),p,14);
+    schools.forEach(S=>{for(let f=0;f<FISH;f++){fishState(S,f,T,tmp);shove(S.v,f,tmp.x+S.o[f*3],tmp.y+S.o[f*3+1],tmp.z+S.o[f*3+2],p,26)}});
+    jellies.forEach(J=>{const d=J.g.position.clone().sub(p),l=d.length()||.01;if(l<RADIUS+10)J.v.addScaledVector(d,Math.pow(1-l/(RADIUS+10),2)*16/l)});
+    const m=new THREE.SpriteMaterial({map:ringTex,color:0xdffcff,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}),s=new THREE.Sprite(m);
+    s.position.copy(p);s.scale.set(1,1,1);scene.add(s);rings.push({s,m,age:0});
+  }
+
   /* input */
   let tMx=0,tMy=0,mx=0,my=0;const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
   const onMove=e=>{tMx=e.clientX/innerWidth*2-1;tMy=e.clientY/innerHeight*2-1};
   const onDown=e=>{
     if(e.target.closest('a,button,[data-ui]'))return;
     mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
-    const p=ray.ray.at(9,new THREE.Vector3()),a=bubG.attributes.position;
-    for(let n=0;n<16;n++){bi=(bi+1)%NB;a.setXYZ(bi,p.x+(R()-.5)*2,p.y+(R()-.5)*2,p.z+(R()-.5)*2);bv[bi]=.08+R()*.14}
-    a.needsUpdate=true;
+    const dz=ray.ray.direction.z,p=ray.ray.at(Math.min(60,Math.max(8,-22/(dz||-1))),new THREE.Vector3());
+    disperse(p);
   };
   const resize=()=>{renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<1?78:60;camera.updateProjectionMatrix()};
   addEventListener('pointermove',onMove);addEventListener('pointerdown',onDown);addEventListener('resize',resize);resize();
@@ -183,13 +201,21 @@ function createOcean(canvas){
     amb.color.copy(cur.amb);sunL.color.copy(cur.sun);amb.intensity=(.25+.6*(1-st))*cur.ambI/.8;sunL.intensity=(.12+1.1*(1-st))*cur.sunI/1.2;
     rays.forEach(r=>{r.material.color.copy(cur.rayCol);r.material.opacity=Math.max(0,r.userData.b*(1-st*1.35))*cur.ray*(.7+.3*Math.sin(T*.7+r.userData.p));r.position.x+=Math.sin(T*.2+r.userData.p)*.004});
     const a=snowG.attributes.position;
-    for(let i=0;i<SNOW;i++){let y=a.getY(i)-dt*.35;if(y<-DEEP-5)y=0;a.setY(i,y);a.setX(i,a.getX(i)+Math.sin(T*.5+i)*.004)}a.needsUpdate=true;
+    const damp=Math.exp(-dt*1.4);
+    for(let i=0;i<SNOW;i++){const j=i*3;let y=a.getY(i)-dt*.35+sv[j+1]*dt;if(y<-DEEP-5||y>0)y=y>0?-DEEP-4:0;a.setY(i,y);a.setX(i,a.getX(i)+Math.sin(T*.5+i)*.004+sv[j]*dt);a.setZ(i,a.getZ(i)+sv[j+2]*dt);sv[j]*=damp;sv[j+1]*=damp;sv[j+2]*=damp}a.needsUpdate=true;
     const b=bubG.attributes.position;
-    for(let i=0;i<NB;i++){let y=b.getY(i)+bv[i];if(y>-1){y=-DEEP;b.setX(i,(R()-.5)*50);b.setZ(i,-4-R()*35);bv[i]=.03+R()*.07}b.setY(i,y);b.setX(i,b.getX(i)+Math.sin(T*2+i)*.01)}b.needsUpdate=true;
+    for(let i=0;i<NB;i++){const j=i*3;let y=b.getY(i)+bv[i]+bw[j+1]*dt;if(y>-1){y=-DEEP;b.setX(i,(R()-.5)*50);b.setZ(i,-4-R()*35);bv[i]=.03+R()*.07;bw[j]=bw[j+1]=bw[j+2]=0}b.setY(i,y);b.setX(i,b.getX(i)+Math.sin(T*2+i)*.01+bw[j]*dt);b.setZ(i,b.getZ(i)+bw[j+2]*dt);bw[j]*=damp;bw[j+1]*=damp;bw[j+2]*=damp}b.needsUpdate=true;
+    for(let n=rings.length-1;n>=0;n--){const r=rings[n];r.age+=dt;const u=r.age/1.5;
+      if(u>=1){scene.remove(r.s);r.m.dispose();rings.splice(n,1);continue}
+      r.s.scale.setScalar(2+u*RADIUS*2.2);r.m.opacity=.8*(1-u)*(1-u)}
+    jellies.forEach(J=>{J.v.addScaledVector(J.o,-2.5*dt).multiplyScalar(Math.exp(-dt*1.2));J.o.addScaledVector(J.v,dt)});
     FU.value=T;
     schools.forEach(S=>{
       for(let f=0;f<FISH;f++){
-        dm.rotation.set(0,fishState(S,f,T,dm.position),Math.sin(T*3+f)*.08);dm.updateMatrix();S.im.setMatrixAt(f,dm.matrix);
+        const j=f*3,ry=fishState(S,f,T,dm.position);
+        for(let c=0;c<3;c++){S.v[j+c]+=-S.o[j+c]*3*dt;S.v[j+c]*=Math.exp(-dt*1.6);S.o[j+c]+=S.v[j+c]*dt}
+        dm.position.x+=S.o[j];dm.position.y+=S.o[j+1];dm.position.z+=S.o[j+2];
+        dm.rotation.set(0,ry,Math.sin(T*3+f)*.08);dm.updateMatrix();S.im.setMatrixAt(f,dm.matrix);
       }
       S.im.instanceMatrix.needsUpdate=true});
     fbt-=dt;
@@ -205,7 +231,7 @@ function createOcean(canvas){
     }
     fbG.attributes.position.needsUpdate=true;fbG.attributes.color.needsUpdate=true;
     jellies.forEach(J=>{const p=Math.sin(T*1.6+J.ph);
-      J.bell.material.opacity=Math.min(.9,.5*cur.glow);J.g.children[2].material.opacity=Math.min(.9,.5*cur.glow);J.bell.scale.set(1-p*.1,1+p*.18,1-p*.1);J.g.position.set(J.bx+Math.sin(T*.25+J.ph)*3,J.by+Math.sin(T*.4+J.ph)*3+p*.4,J.g.position.z);J.g.rotation.y=T*.1+J.ph;
+      J.bell.material.opacity=Math.min(.9,.5*cur.glow);J.g.children[2].material.opacity=Math.min(.9,.5*cur.glow);J.bell.scale.set(1-p*.1,1+p*.18,1-p*.1);J.g.position.set(J.bx+Math.sin(T*.25+J.ph)*3+J.o.x,J.by+Math.sin(T*.4+J.ph)*3+p*.4+J.o.y,J.g.position.z-J.g.userData.oz+J.o.z);J.g.userData.oz=J.o.z;J.g.rotation.y=T*.1+J.ph;
       J.tn.forEach(t=>{const pos=t.ln.geometry.attributes.position;
         for(let l=0;l<12;l++){const f=l/11,r=1.2*(1-f*.4);pos.setXYZ(l,Math.cos(t.a)*r+Math.sin(T*1.5+l*.5+t.a)*.35*f,-f*(4.5+p*.5),Math.sin(t.a)*r+Math.cos(T*1.3+l*.5+t.a)*.35*f)}
         pos.needsUpdate=true})});
