@@ -1,81 +1,221 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ming Thong · Dive In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Manrope:wght@400;600&display=swap">
+<style>
+:root{color-scheme:dark;--ink:#e8fbff;--dim:#a9d3de;--line:rgba(190,245,255,.22);--glass:rgba(4,30,48,.45);--glow:#5cffd6;--pink:#ff7ad9}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;background:#031528}
+body{color:var(--ink);font-family:Manrope,system-ui,sans-serif;overflow-x:hidden}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.bar{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 28px 16px}
+.logo{font-family:Fraunces,Georgia,serif;font-size:20px;color:var(--ink);text-decoration:none}
+nav{display:flex;gap:2px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:999px;padding:4px}
+nav a{color:var(--dim);text-decoration:none;font-size:14px;padding:7px 14px;border-radius:999px;transition:.25s}
+nav a:hover,nav a.on{background:rgba(232,251,255,.92);color:#04263a}
+a:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.gauge{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:5;height:44vh;width:2px;background:var(--line);border-radius:2px}
+.gauge i{position:absolute;left:-5px;width:12px;height:12px;border-radius:50%;background:var(--glow);box-shadow:0 0 14px var(--glow);top:0}
+.gauge b{position:absolute;right:20px;top:0;font-weight:600;font-size:13px;white-space:nowrap;transform:translateY(-3px);color:var(--ink);text-shadow:0 1px 8px rgba(0,0,0,.5)}
+main{position:relative;z-index:2}
+.sec{min-height:100vh;display:flex;align-items:center;padding:0 9vw}
+.sec.r{justify-content:flex-end}
+.hero h1{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(56px,11vw,150px);line-height:.92;letter-spacing:-.03em;text-shadow:0 0 60px rgba(120,240,255,.35)}
+.hero h1 span{display:inline-block;opacity:0;transform:translateY(40px);filter:blur(12px);animation:rise 1.6s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none;filter:none}}
+.hero .sub,.hero .term,.hero .tags,.cue{opacity:0;animation:rise 1.4s 1.3s ease forwards}
+.hero .sub{margin-top:26px;max-width:42ch;font-size:clamp(16px,1.7vw,20px);line-height:1.6;color:var(--dim)}
+.term{margin-top:18px;font-family:ui-monospace,Menlo,monospace;color:var(--glow);font-size:14px}
+.term i{display:inline-block;width:8px;height:15px;background:var(--glow);vertical-align:-2px;margin-left:4px;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.tags span{border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:12px;padding:9px 14px;font-size:13px}
+.tags b{color:var(--glow);margin-right:7px;font-weight:400}
+.cue{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);color:var(--dim);font-size:13px;text-align:center}
+.glass{width:min(520px,100%);background:var(--glass);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border:1px solid var(--line);border-radius:24px;padding:36px;box-shadow:0 30px 80px rgba(0,10,25,.45),inset 0 1px 0 rgba(255,255,255,.14)}
+.glass h2{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:clamp(34px,4.4vw,52px);letter-spacing:-.02em;line-height:1}
+.glass .zone{color:var(--glow);font-size:13px;margin:10px 0 18px}
+.glass p,.glass li{color:var(--dim);line-height:1.65;font-size:16px}
+.glass ul{padding-left:18px;margin-top:12px}
+.cards{display:grid;gap:12px;margin-top:20px}
+.card{height:92px;border-radius:16px;border:1px solid var(--line);display:flex;align-items:flex-end;padding:12px 14px;font-size:14px;color:#fff;position:relative;overflow:hidden;transition:transform .35s}
+.card:hover{transform:translateY(-4px) scale(1.01)}
+.social{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.social a{color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14px;transition:.25s}
+.social a:hover{background:var(--ink);color:#04263a}
+footer{position:relative;z-index:2;text-align:center;padding:30px 20px calc(30px + env(safe-area-inset-bottom,0px));color:#7fa8b5;font-size:13px}
+@media (max-width:760px){.gauge{display:none}.bar{flex-direction:column;align-items:flex-start;gap:8px}nav a{padding:6px 10px;font-size:13px}.sec,.sec.r{justify-content:flex-start;padding:0 5vw}.glass{padding:26px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-delay:0s!important;scroll-behavior:auto!important}}
+</style>
 </head>
 <body>
+<canvas id="c" aria-hidden="true"></canvas>
+<header class="bar"><a class="logo" href="#home">Ming Thong</a>
+<nav id="nav" aria-label="Sections"><a href="#home">Home</a><a href="#about">About Me</a><a href="#projects">Projects</a><a href="#skills">Skills</a><a href="#game">Game</a><a href="#contact">Contact</a></nav></header>
+<div class="gauge" id="gauge"><i id="dot"></i><b id="dep">0 m</b></div>
 
-  <canvas id="particle-canvas"></canvas>
+<main>
+<section class="sec hero" id="home" style="position:relative"><div>
+<h1 aria-label="Ming Thong"><span style="animation-delay:.2s">Ming</span><br><span style="animation-delay:.5s">Thong</span></h1>
+<p class="sub">UX/UI designer and experience strategist. I design digital experiences that feel intuitive, engaging, and worth remembering.</p>
+<p class="term">&gt; building for the web<i></i></p>
+<div class="tags"><span><b>&lt;/&gt;</b>Develop</span><span><b>◇</b>Design</span><span><b>⚡</b>Optimize</span><span><b>☺</b>Accessible</span></div></div>
+<div class="cue">Scroll to dive · click the water to make bubbles</div></section>
 
-  <header class="navbar">
-    <a href="index.html" class="logo">YourName</a>
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html">About Me</a>
-      <a href="game.html">Game</a>
-    </nav>
-  </header>
+<section class="sec r" id="about"><div class="glass"><h2>About Me</h2><div class="zone">Sunlight zone · 20 m</div>
+<p>I’m a designer who cares about the moment a product stops feeling like software and starts feeling obvious. I blend research, interface craft and front-end code.</p>
+<ul><li>Based in Singapore</li><li>UX research and strategy</li><li>Interface and interaction design</li></ul></div></section>
 
-  <main>
-    <section class="hero" id="hero">
-      <div class="hero-left">
-        <h1 class="hero-title"> <br>Ming Thong</h1>
+<section class="sec" id="projects"><div class="glass"><h2>Projects</h2><div class="zone">Twilight zone · 45 m</div>
+<p>Three recent explorations. Swap these cards for your own case studies.</p>
+<div class="cards"><div class="card" style="background:linear-gradient(120deg,#12457a,#5b46c9)">Project 1</div><div class="card" style="background:linear-gradient(120deg,#0b6a76,#2fd0b0)">Project 2</div><div class="card" style="background:linear-gradient(120deg,#6b2f66,#ff7ad9)">Project 3</div></div></div></section>
 
-        <p class="hero-subtitle">
-          UX/UI Designer & Experience Strategist<br>
-          Designing digital experiences<br>
-          that feel intuitive, engaging,<br>
-          and worth remembering.
-        </p>
+<section class="sec r" id="skills"><div class="glass"><h2>Skills</h2><div class="zone">Midnight zone · 75 m</div>
+<ul><li>Figma, prototyping, design systems</li><li>HTML, CSS, JavaScript, WebGL</li><li>Usability testing and accessibility audits</li><li>Performance and optimisation</li></ul></div></section>
 
-        <p class="hero-terminal">&gt; _  <span>building for the web</span></p>
+<section class="sec" id="game"><div class="glass"><h2>Game</h2><div class="zone">Deep zone · 100 m</div>
+<p>A small arcade of experiments lives down here. Level one is still being built; check back soon.</p></div></section>
 
-        <div class="hero-tags">
-          <div class="tag-item">
-            <span class="tag-icon">&lt;/&gt;</span>
-            <span class="tag-label">DEVELOP</span>
-          </div>
-          <div class="tag-item">
-            <span class="tag-icon">◇</span>
-            <span class="tag-label">DESIGN</span>
-          </div>
-          <div class="tag-item">
-            <span class="tag-icon">⚡</span>
-            <span class="tag-label">OPTIMIZE</span>
-          </div>
-          <div class="tag-item">
-            <span class="tag-icon">☺</span>
-            <span class="tag-label">ACCESSIBLE</span>
-          </div>
-        </div>
-      </div>
+<section class="sec r" id="contact"><div class="glass"><h2>Contact</h2><div class="zone">The seabed · 120 m</div>
+<p>Have a project, a role or just an idea? Say hello and I’ll reply within a couple of days.</p>
+<div class="social"><a href="https://instagram.com/yourhandle" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://linkedin.com/in/yourhandle" target="_blank" rel="noopener noreferrer">LinkedIn</a><a href="https://github.com/yourhandle" target="_blank" rel="noopener noreferrer">GitHub</a></div></div></section>
+</main>
+<footer>© 2026 Ming Thong · Built from scratch</footer>
 
-      <div class="hero-right">
-        <div class="carousel" id="carousel">
-          <div class="carousel-track" id="carouselTrack">
-            <img src="images/slide1.png" alt="Project 1" class="carousel-slide">
-            <img src="images/slide2.png" alt="Project 2" class="carousel-slide">
-            <img src="images/slide3.png" alt="Project 3" class="carousel-slide">
-          </div>
-          <div class="carousel-dots" id="carouselDots"></div>
-        </div>
-      </div>
-    </section>
-  </main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+var R=Math.random,PI=Math.PI,DEEP=130;
+var renderer=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+var scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,1,.1,600);
+scene.fog=new THREE.FogExp2(0x2bb7cf,.02);
+var amb=new THREE.AmbientLight(0x8fe8ff,.8),sunL=new THREE.DirectionalLight(0xdffcff,1.2);
+sunL.position.set(5,30,10);scene.add(amb,sunL);
+var stops=['#2bb7cf','#0b7a9b','#06365a','#031528','#01070f'].map(function(h){return new THREE.Color(h)});
+function zoneColor(t,out){var f=Math.min(.9999,t)*4,i=Math.floor(f);return out.copy(stops[i]).lerp(stops[i+1],f-i)}
 
-  <footer class="site-footer">
-    <p class="footer-text">© 2026 Your Name · Built from scratch</p>
-    <div class="footer-socials">
-      <a href="https://instagram.com/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="Instagram">IG</a>
-      <a href="https://linkedin.com/in/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">LI</a>
-      <a href="https://github.com/yourhandle" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GH</a>
-    </div>
-  </footer>
+// caustics GLSL
+var CAUS='float caus(vec2 p,float t){vec2 i=p;float c=1.;float k=.005;for(int n=0;n<4;n++){float t2=t*(1.-3.5/float(n+1));i=p+vec2(cos(t2-i.x)+sin(t2+i.y),sin(t2-i.y)+cos(t2+i.x));c+=1./length(vec2(p.x/(sin(i.x+t2)/k),p.y/(cos(i.y+t2)/k)));}c/=4.;c=1.17-pow(c,1.4);return pow(abs(c),8.);}';
+var U={uT:{value:0},uFog:{value:new THREE.Color()},uCam:{value:new THREE.Vector3()}};
 
-  <script src="particles.js"></script>
-  <script src="carousel.js"></script>
+// surface seen from below
+var surf=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.ShaderMaterial({uniforms:U,transparent:true,side:THREE.DoubleSide,depthWrite:false,
+vertexShader:'varying vec3 w;void main(){w=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(w,1.);}',
+fragmentShader:'uniform float uT;uniform vec3 uFog;uniform vec3 uCam;varying vec3 w;'+CAUS+'void main(){vec2 p=w.xz*.06;float c=caus(p,uT*.4);float d=length(w-uCam);vec3 col=mix(vec3(.16,.72,.86),vec3(.9,1.,1.),c*1.4);col+=.12*sin(w.x*.3+uT)*sin(w.z*.3-uT*.8);float a=clamp(.9-d*.0035,0.,.9);gl_FragColor=vec4(mix(col,uFog,clamp(d*.006,0.,.5)),a);}'}));
+surf.rotation.x=-PI/2;scene.add(surf);
+
+// seabed
+var gSea=new THREE.PlaneGeometry(400,400,90,90),pa=gSea.attributes.position;
+for(var i=0;i<pa.count;i++){var x=pa.getX(i),y=pa.getY(i);pa.setZ(i,Math.sin(x*.05)*3+Math.cos(y*.07)*3+Math.sin(x*.19+y*.13)*1.2)}
+gSea.computeVertexNormals();
+var sea=new THREE.Mesh(gSea,new THREE.ShaderMaterial({uniforms:U,
+vertexShader:'varying vec3 w;varying vec3 n;void main(){w=(modelMatrix*vec4(position,1.)).xyz;n=normalMatrix*normal;gl_Position=projectionMatrix*viewMatrix*vec4(w,1.);}',
+fragmentShader:'uniform float uT;uniform vec3 uFog;uniform vec3 uCam;varying vec3 w;varying vec3 n;'+CAUS+'void main(){float c=caus(w.xz*.05,uT*.35);float d=length(w-uCam);vec3 base=vec3(.1,.2,.25)+.1*sin(w.x*.1)*sin(w.z*.1);base+=vec3(.2,.9,.9)*c*.5;float f=1.-exp(-d*d*.00055);gl_FragColor=vec4(mix(base,uFog,f),1.);}'}));
+sea.rotation.x=-PI/2;sea.position.y=-DEEP-6;scene.add(sea);
+// rocks
+var rocks=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0x1d3a45,flatShading:true}),60),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
+for(i=0;i<60;i++){var s=1.5+R()*5;e.set(R()*3,R()*3,R()*3);q.setFromEuler(e);m4.compose(new THREE.Vector3((R()-.5)*120,-DEEP-4,-8-R()*70),q,new THREE.Vector3(s,s*.7,s));rocks.setMatrixAt(i,m4)}
+scene.add(rocks);
+
+// god rays
+function rayTex(){var c=document.createElement('canvas');c.width=64;c.height=256;var g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,256);
+var h=g.createLinearGradient(0,0,64,0);h.addColorStop(0,'rgba(0,0,0,1)');h.addColorStop(.5,'rgba(0,0,0,0)');h.addColorStop(1,'rgba(0,0,0,1)');g.globalCompositeOperation='destination-out';g.fillStyle=h;g.fillRect(0,0,64,256);return new THREE.CanvasTexture(c)}
+var rt=rayTex(),rays=[];
+for(i=0;i<12;i++){var rm=new THREE.Mesh(new THREE.PlaneGeometry(4+R()*8,140),new THREE.MeshBasicMaterial({map:rt,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide,color:0xbff8ff}));
+rm.position.set((R()-.5)*90,-62,-8-R()*50);rm.rotation.z=.18+R()*.05;rm.userData={b:.08+R()*.14,p:R()*6};scene.add(rm);rays.push(rm)}
+
+// sprite textures
+function dotTex(ring){var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);
+if(ring){gr.addColorStop(0,'rgba(255,255,255,.05)');gr.addColorStop(.75,'rgba(255,255,255,.12)');gr.addColorStop(.9,'rgba(255,255,255,.85)');gr.addColorStop(1,'rgba(255,255,255,0)')}else{gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)')}
+g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
+// marine snow
+var N=2600,sp=new Float32Array(N*3);
+for(i=0;i<N;i++){sp[i*3]=(R()-.5)*90;sp[i*3+1]=-R()*(DEEP+5);sp[i*3+2]=-R()*60+8}
+var sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+scene.add(new THREE.Points(sg,new THREE.PointsMaterial({map:dotTex(0),size:.45,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending,color:0xcff8ff})));
+// bubbles
+var NB=260,bp=new Float32Array(NB*3),bv=[];
+for(i=0;i<NB;i++){bp[i*3]=(R()-.5)*50;bp[i*3+1]=-R()*DEEP;bp[i*3+2]=-4-R()*35;bv.push(.03+R()*.07)}
+var bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(bp,3));
+scene.add(new THREE.Points(bg,new THREE.PointsMaterial({map:dotTex(1),size:1.1,transparent:true,opacity:.9,depthWrite:false,color:0xe8ffff})));
+var bi=0;
+// fish schools
+var schools=[];
+[[-12,0x9fe3ee,1],[-38,0xffb347,1.2],[-70,0x7fffe0,1.1]].forEach(function(S,k){
+ var g=new THREE.ConeGeometry(.28*S[2],1.1*S[2],6);g.rotateZ(-PI/2);
+ var im=new THREE.InstancedMesh(g,new THREE.MeshLambertMaterial({color:S[1]}),70);scene.add(im);schools.push({im:im,y:S[0],k:k});
+});
+var dm=new THREE.Object3D();
+// jellyfish
+var jellies=[],jc=[0x5cffd6,0xff7ad9,0x9d8cff,0xffc16b,0x5cd7ff,0xff7ad9,0x5cffd6];
+jc.forEach(function(col,k){
+ var g=new THREE.Group(),bell=new THREE.Mesh(new THREE.SphereGeometry(1.6,28,14,0,PI*2,0,PI/2),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+ var core=new THREE.Mesh(new THREE.SphereGeometry(.8,16,8,0,PI*2,0,PI/2),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));
+ var glow=new THREE.Sprite(new THREE.SpriteMaterial({map:dotTex(0),color:col,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));glow.scale.set(9,9,1);
+ g.add(bell,core,glow);var tn=[];
+ for(var j=0;j<12;j++){var pts=[];for(var l=0;l<12;l++)pts.push(new THREE.Vector3());var gm=new THREE.BufferGeometry().setFromPoints(pts);
+  var ln=new THREE.Line(gm,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(ln);tn.push({ln:ln,a:j/12*PI*2})}
+ var sc=.8+R()*1.1;g.scale.setScalar(sc);g.position.set((k%2?1:-1)*(6+R()*14),-30-k*13-R()*6,-10-R()*16);
+ scene.add(g);jellies.push({g:g,bell:bell,tn:tn,ph:R()*6,by:g.position.y,bx:g.position.x});
+});
+
+// input
+var mx=0,my=0,tMx=0,tMy=0,ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+addEventListener('pointermove',function(e){tMx=e.clientX/innerWidth*2-1;tMy=e.clientY/innerHeight*2-1});
+addEventListener('pointerdown',function(e){
+ if(e.target.closest('a,.glass,nav'))return;
+ mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
+ var p=ray.ray.at(9,new THREE.Vector3()),a=bg.attributes.position;
+ for(var n=0;n<16;n++){bi=(bi+1)%NB;a.setXYZ(bi,p.x+(R()-.5)*2,p.y+(R()-.5)*2,p.z+(R()-.5)*2);bv[bi]=.08+R()*.14}
+ a.needsUpdate=true;
+});
+var links=[].slice.call(document.querySelectorAll('nav a')),secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))});
+var dot=document.getElementById('dot'),dep=document.getElementById('dep'),gauge=document.getElementById('gauge');
+function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+var clock=new THREE.Clock(),T=0,st=0,col=new THREE.Color(),reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function loop(){
+ var dt=Math.min(clock.getDelta(),.05);T+=dt*(reduce?.3:1);
+ var max=Math.max(1,document.documentElement.scrollHeight-innerHeight),target=Math.min(1,scrollY/max);
+ st+=(target-st)*(1-Math.pow(.004,dt));
+ mx+=(tMx-mx)*.05;my+=(tMy-my)*.05;
+ var cy=-3-st*DEEP;
+ camera.position.set(mx*3+Math.sin(T*.3)*.8,cy+Math.sin(T*.6)*.4,0);
+ var look=18*(1-Math.min(1,st*5))-2*Math.min(1,st*5);
+ camera.lookAt(mx*8,cy+look-my*4,-30);
+ zoneColor(st,col);scene.background=col;scene.fog.color.copy(col);scene.fog.density=.02+.016*st;
+ U.uT.value=T;U.uFog.value.copy(col);U.uCam.value.copy(camera.position);
+ amb.intensity=.25+.6*(1-st);sunL.intensity=.12+1.1*(1-st);
+ rays.forEach(function(r){r.material.opacity=Math.max(0,r.userData.b*(1-st*1.35))*(.7+.3*Math.sin(T*.7+r.userData.p));r.position.x+=Math.sin(T*.2+r.userData.p)*.004});
+ // snow & bubbles
+ var a=sg.attributes.position;for(i=0;i<N;i++){var y=a.getY(i)-dt*.35;if(y<-DEEP-5)y=0;a.setY(i,y);a.setX(i,a.getX(i)+Math.sin(T*.5+i)*.004)}a.needsUpdate=true;
+ var b=bg.attributes.position;for(i=0;i<NB;i++){var by=b.getY(i)+bv[i];if(by>-1){by=-DEEP;b.setX(i,(R()-.5)*50);b.setZ(i,-4-R()*35);bv[i]=.03+R()*.07}b.setY(i,by);b.setX(i,b.getX(i)+Math.sin(T*2+i)*.01)}b.needsUpdate=true;
+ // fish
+ schools.forEach(function(S){var sp=.35+S.k*.08;
+  for(var f=0;f<70;f++){var ph=f*.37,ang=T*sp+ph*.06+Math.floor(f/10)*.25,rr=22+Math.sin(ph*3)*5;
+   var px=Math.cos(ang)*rr,pz=-22+Math.sin(ang)*12*(1+Math.sin(ph)*.1);
+   dm.position.set(px+Math.sin(T*2+ph)*.5,S.y+Math.sin(ph*2.3)*5+Math.sin(T+ph)*.6,pz);
+   dm.rotation.set(0,-Math.atan2(Math.cos(ang)*12,-Math.sin(ang)*rr),Math.sin(T*8+ph)*.12);dm.updateMatrix();S.im.setMatrixAt(f,dm.matrix)}
+  S.im.instanceMatrix.needsUpdate=true});
+ // jellies
+ jellies.forEach(function(J,k){var p=Math.sin(T*1.6+J.ph);
+  J.bell.scale.set(1-p*.1,1+p*.18,1-p*.1);J.g.position.y=J.by+Math.sin(T*.4+J.ph)*3+p*.4;J.g.position.x=J.bx+Math.sin(T*.25+J.ph)*3;J.g.rotation.y=T*.1+J.ph;
+  J.tn.forEach(function(t,j){var pos=t.ln.geometry.attributes.position,rad=1.2;
+   for(var l=0;l<12;l++){var f=l/11;pos.setXYZ(l,Math.cos(t.a)*rad*(1-f*.4)+Math.sin(T*1.5+l*.5+t.a)*.35*f,-f*(4.5+p*.5),Math.sin(t.a)*rad*(1-f*.4)+Math.cos(T*1.3+l*.5+t.a)*.35*f)}
+   pos.needsUpdate=true})});
+ // UI
+ var d=st*120;dep.textContent=Math.round(d)+' m';var gh=gauge.clientHeight;dot.style.top=(st*(gh-12))+'px';dep.style.top=(st*(gh-12))+'px';
+ var mid=scrollY+innerHeight*.5,on=0;secs.forEach(function(s,i){if(s.offsetTop<=mid)on=i});links.forEach(function(l,i){l.classList.toggle('on',i===on)});
+ renderer.render(scene,camera);requestAnimationFrame(loop);
+}
+loop();
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ming Thong · Dive In</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Manrope:wght@400;600&display=swap">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config={theme:{extend:{
+  fontFamily:{display:['Fraunces','Georgia','serif'],sans:['Manrope','system-ui','sans-serif']},
+  colors:{ink:'#e8fbff',dim:'#a9d3de',glow:'#5cffd6',pink:'#ff7ad9',abyss:'#031528'}}}}
+</script>
+<style>
+:root{color-scheme:dark}
+html{scroll-behavior:smooth;background:#031528}
+body{margin:0;overflow-x:hidden}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation-duration:.01s!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body class="bg-abyss text-ink font-sans antialiased">
+<canvas id="ocean" aria-hidden="true" class="fixed inset-0 z-0 block h-full w-full"></canvas>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script>
+/* ===================== 3D SCENE (Three.js) ===================== */
+function createOcean(canvas){
+  const R=Math.random,PI=Math.PI,DEEP=130,mobile=innerWidth<768;
+  const FISH=mobile?18:34,SNOW=mobile?1300:2600;
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobile});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.5:2));
+  const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,1,.1,600);
+  scene.fog=new THREE.FogExp2(0x2bb7cf,.02);
+  const amb=new THREE.AmbientLight(0x8fe8ff,.8),sunL=new THREE.DirectionalLight(0xdffcff,1.2);
+  sunL.position.set(5,30,10);scene.add(amb,sunL);
+  const stops=['#2bb7cf','#0b7a9b','#06365a','#031528','#01070f'].map(h=>new THREE.Color(h));
+  const zoneColor=(t,out)=>{const f=Math.min(.9999,t)*4,i=Math.floor(f);return out.copy(stops[i]).lerp(stops[i+1],f-i)};
+  const U={uT:{value:0},uFog:{value:new THREE.Color()},uCam:{value:new THREE.Vector3()}};
+  const CAUS='float caus(vec2 p,float t){vec2 i=p;float c=1.;float k=.005;for(int n=0;n<4;n++){float t2=t*(1.-3.5/float(n+1));i=p+vec2(cos(t2-i.x)+sin(t2+i.y),sin(t2-i.y)+cos(t2+i.x));c+=1./length(vec2(p.x/(sin(i.x+t2)/k),p.y/(cos(i.y+t2)/k)));}c/=4.;c=1.17-pow(c,1.4);return pow(abs(c),8.);}';
+  const VERT='varying vec3 w;void main(){w=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(w,1.);}';
+  const HEAD='uniform float uT;uniform vec3 uFog;uniform vec3 uCam;varying vec3 w;'+CAUS;
+
+  function sprite(ring){
+    const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);
+    if(ring){gr.addColorStop(0,'rgba(255,255,255,.05)');gr.addColorStop(.75,'rgba(255,255,255,.12)');gr.addColorStop(.9,'rgba(255,255,255,.85)');gr.addColorStop(1,'rgba(255,255,255,0)')}
+    else{gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)')}
+    g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);
+  }
+  const addPoints=(arr,mat)=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(arr,3));scene.add(new THREE.Points(g,mat));return g};
+
+  /* surface + seabed */
+  const surf=new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.ShaderMaterial({uniforms:U,transparent:true,side:THREE.DoubleSide,depthWrite:false,vertexShader:VERT,
+    fragmentShader:HEAD+'void main(){float c=caus(w.xz*.06,uT*.4);float d=length(w-uCam);vec3 col=mix(vec3(.16,.72,.86),vec3(.9,1.,1.),c*1.4);col+=.12*sin(w.x*.3+uT)*sin(w.z*.3-uT*.8);gl_FragColor=vec4(mix(col,uFog,clamp(d*.006,0.,.5)),clamp(.9-d*.0035,0.,.9));}'}));
+  surf.rotation.x=-PI/2;scene.add(surf);
+  const gSea=new THREE.PlaneGeometry(400,400,90,90),pa=gSea.attributes.position;
+  for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i);pa.setZ(i,Math.sin(x*.05)*3+Math.cos(y*.07)*3+Math.sin(x*.19+y*.13)*1.2)}
+  const sea=new THREE.Mesh(gSea,new THREE.ShaderMaterial({uniforms:U,vertexShader:VERT,
+    fragmentShader:HEAD+'void main(){float c=caus(w.xz*.05,uT*.35);float d=length(w-uCam);vec3 b=vec3(.74,.56,.33)*(.88+.12*sin(w.x*.6+sin(w.z*.35)*2.)+.06*sin(w.x*.1)*sin(w.z*.1))+vec3(.85,.65,.35)*min(c,1.2)*.22;b*=.8;gl_FragColor=vec4(mix(b,uFog,1.-exp(-d*d*.00022)),1.);}'}));
+  sea.rotation.x=-PI/2;sea.position.y=-DEEP-6;scene.add(sea);
+  const rocks=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,1),new THREE.MeshLambertMaterial({color:0x1d3a45,flatShading:true}),60),m4=new THREE.Matrix4(),q=new THREE.Quaternion(),eu=new THREE.Euler();
+  for(let i=0;i<60;i++){const s=1.5+R()*5;eu.set(R()*3,R()*3,R()*3);q.setFromEuler(eu);m4.compose(new THREE.Vector3((R()-.5)*120,-DEEP-4,-8-R()*70),q,new THREE.Vector3(s,s*.7,s));rocks.setMatrixAt(i,m4)}
+  scene.add(rocks);
+
+  /* god rays */
+  const rc=document.createElement('canvas');rc.width=64;rc.height=256;
+  {const g=rc.getContext('2d'),v=g.createLinearGradient(0,0,0,256);v.addColorStop(0,'#fff');v.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=v;g.fillRect(0,0,64,256);
+   const h=g.createLinearGradient(0,0,64,0);h.addColorStop(0,'#000');h.addColorStop(.5,'rgba(0,0,0,0)');h.addColorStop(1,'#000');g.globalCompositeOperation='destination-out';g.fillStyle=h;g.fillRect(0,0,64,256)}
+  const rt=new THREE.CanvasTexture(rc),rays=[];
+  for(let i=0;i<12;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(4+R()*8,140),new THREE.MeshBasicMaterial({map:rt,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide,color:0xbff8ff}));
+    m.position.set((R()-.5)*90,-62,-8-R()*50);m.rotation.z=.18+R()*.05;m.userData={b:.08+R()*.14,p:R()*6};scene.add(m);rays.push(m)}
+
+  /* particles: marine snow + bubbles */
+  const sp=new Float32Array(SNOW*3);
+  for(let i=0;i<SNOW;i++){sp[i*3]=(R()-.5)*90;sp[i*3+1]=-R()*(DEEP+5);sp[i*3+2]=-R()*60+8}
+  const snowG=addPoints(sp,new THREE.PointsMaterial({map:sprite(0),size:.45,transparent:true,opacity:.7,depthWrite:false,blending:THREE.AdditiveBlending,color:0xcff8ff}));
+  const NB=260,bp=new Float32Array(NB*3),bv=[];
+  for(let i=0;i<NB;i++){bp[i*3]=(R()-.5)*50;bp[i*3+1]=-R()*DEEP;bp[i*3+2]=-4-R()*35;bv.push(.03+R()*.07)}
+  const bubG=addPoints(bp,new THREE.PointsMaterial({map:sprite(1),size:1.1,transparent:true,opacity:.9,depthWrite:false,color:0xe8ffff}));
+  let bi=0;
+
+  /* fish: low-poly body + tail, dorsal and pectoral fins, shader tail-wag, motion trails */
+  const FU={value:0},tmp=new THREE.Vector3();
+  function fishGeo(size){
+    const parts=[];
+    const add=(g,x,y,z,c,sx,sy,sz)=>{g=g.index?g.toNonIndexed():g;g.scale(sx,sy,sz);g.translate(x,y,z);parts.push([g,c])};
+    add(new THREE.SphereGeometry(.5,7,5),0,0,0,1,1.25,.65,.42);
+    const tail=new THREE.ConeGeometry(.3,.5,4);tail.rotateZ(-PI/2);add(tail,-.7,0,0,.7,1,1.4,.25);
+    const dor=new THREE.ConeGeometry(.18,.4,3);dor.rotateZ(.4);add(dor,-.05,.28,0,.7,1,1,.25);
+    [1,-1].forEach(s=>{const p=new THREE.ConeGeometry(.1,.4,3);p.rotateX(s*PI/2);add(p,.15,-.1,s*.18,.7,1,.3,1)});
+    let n=0;parts.forEach(p=>n+=p[0].attributes.position.count);
+    const pos=new Float32Array(n*3),col=new Float32Array(n*3);let o=0;
+    parts.forEach(([g,c])=>{const a=g.attributes.position.array;pos.set(a,o*3);for(let i=0;i<a.length/3;i++){col[(o+i)*3]=col[(o+i)*3+1]=col[(o+i)*3+2]=c}o+=a.length/3});
+    const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.BufferAttribute(pos,3));G.setAttribute('color',new THREE.BufferAttribute(col,3));
+    G.computeVertexNormals();G.scale(size,size,size);return G;
+  }
+  function fishState(S,f,t,P){
+    const ph=f*.37,ang=t*(.35+S.k*.08)+ph*.06+Math.floor(f/10)*.25,rr=22+Math.sin(ph*3)*5;
+    P.set(Math.cos(ang)*rr+Math.sin(t*2+ph)*.5,S.y+Math.sin(ph*2.3)*5+Math.sin(t+ph)*.6,-22+Math.sin(ang)*12*(1+Math.sin(ph)*.1));
+    return -Math.atan2(Math.cos(ang)*12,-Math.sin(ang)*rr);
+  }
+  const schools=[[-12,0x9fe3ee,1],[-38,0xffb347,1.2],[-70,0x7fffe0,1.1]].map((S,k)=>{
+    const mat=new THREE.MeshLambertMaterial({vertexColors:true,color:S[1]});
+    mat.onBeforeCompile=sh=>{sh.uniforms.uTime=FU;sh.vertexShader='uniform float uTime;\n'+sh.vertexShader.replace('#include <begin_vertex>','vec3 transformed=vec3(position);float ph=instanceMatrix[3][0]*.7+instanceMatrix[3][2]*.5;float kk=smoothstep(.2,-1.,position.x);transformed.z+=sin(uTime*9.+ph+position.x*3.)*.22*kk;')};
+    const im=new THREE.InstancedMesh(fishGeo(S[2]),mat,FISH);im.frustumCulled=false;scene.add(im);
+    return{im,y:S[0],k};
+  });
+  const dm=new THREE.Object3D();
+  /* occasional bubbles released by random fish; they rise slowly on their own */
+  const FB=40,fbp=new Float32Array(FB*3),fbc=new Float32Array(FB*3),fbl=new Float32Array(FB),fbv=new Float32Array(FB),fbh=new Float32Array(FB);let fbi=0,fbt=0;
+  const fbG=addPoints(fbp,new THREE.PointsMaterial({map:sprite(1),size:.4,vertexColors:true,transparent:true,opacity:.8,depthWrite:false,blending:THREE.AdditiveBlending}));
+  fbG.setAttribute('color',new THREE.BufferAttribute(fbc,3));scene.children[scene.children.length-1].frustumCulled=false;
+
+  /* jellyfish */
+  const jellies=[0x5cffd6,0xff7ad9,0x9d8cff,0xffc16b,0x5cd7ff,0xff7ad9,0x5cffd6].map((col,k)=>{
+    const g=new THREE.Group(),add=(c,o)=>new THREE.MeshBasicMaterial(Object.assign({color:c,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false},o));
+    const bell=new THREE.Mesh(new THREE.SphereGeometry(1.6,28,14,0,PI*2,0,PI/2),add(col,{opacity:.5,side:THREE.DoubleSide}));
+    const core=new THREE.Mesh(new THREE.SphereGeometry(.8,16,8,0,PI*2,0,PI/2),add(0xffffff,{opacity:.45}));
+    const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:sprite(0),color:col,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));glow.scale.set(9,9,1);
+    g.add(bell,core,glow);const tn=[];
+    for(let j=0;j<12;j++){const gm=new THREE.BufferGeometry().setFromPoints(Array.from({length:12},()=>new THREE.Vector3()));
+      const ln=new THREE.Line(gm,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(ln);tn.push({ln,a:j/12*PI*2})}
+    g.scale.setScalar(.8+R()*1.1);g.position.set((k%2?1:-1)*(6+R()*14),-30-k*13-R()*6,-10-R()*16);scene.add(g);
+    return{g,bell,tn,ph:R()*6,by:g.position.y,bx:g.position.x};
+  });
+
+  /* input */
+  let tMx=0,tMy=0,mx=0,my=0;const ray=new THREE.Raycaster(),mv=new THREE.Vector2();
+  const onMove=e=>{tMx=e.clientX/innerWidth*2-1;tMy=e.clientY/innerHeight*2-1};
+  const onDown=e=>{
+    if(e.target.closest('a,button,[data-ui]'))return;
+    mv.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mv,camera);
+    const p=ray.ray.at(9,new THREE.Vector3()),a=bubG.attributes.position;
+    for(let n=0;n<16;n++){bi=(bi+1)%NB;a.setXYZ(bi,p.x+(R()-.5)*2,p.y+(R()-.5)*2,p.z+(R()-.5)*2);bv[bi]=.08+R()*.14}
+    a.needsUpdate=true;
+  };
+  const resize=()=>{renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<1?78:60;camera.updateProjectionMatrix()};
+  addEventListener('pointermove',onMove);addEventListener('pointerdown',onDown);addEventListener('resize',resize);resize();
+
+  /* loop */
+  const clock=new THREE.Clock(),col=new THREE.Color(),reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let T=0,st=0,raf;
+  function frame(){
+    const dt=Math.min(clock.getDelta(),.05);T+=dt*(reduce?.3:1);
+    const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
+    st+=(Math.min(1,scrollY/max)-st)*(1-Math.pow(.004,dt));
+    mx+=(tMx-mx)*.05;my+=(tMy-my)*.05;
+    const cy=-3-st*DEEP,k=Math.min(1,st*5);
+    camera.position.set(mx*3+Math.sin(T*.3)*.8,cy+Math.sin(T*.6)*.4,0);
+    camera.lookAt(mx*8,cy+18*(1-k)-2*k-my*4,-30);
+    zoneColor(st,col);scene.background=col;scene.fog.color.copy(col);scene.fog.density=.02+.016*st;
+    U.uT.value=T;U.uFog.value.copy(col);U.uCam.value.copy(camera.position);
+    amb.intensity=.25+.6*(1-st);sunL.intensity=.12+1.1*(1-st);
+    rays.forEach(r=>{r.material.opacity=Math.max(0,r.userData.b*(1-st*1.35))*(.7+.3*Math.sin(T*.7+r.userData.p));r.position.x+=Math.sin(T*.2+r.userData.p)*.004});
+    const a=snowG.attributes.position;
+    for(let i=0;i<SNOW;i++){let y=a.getY(i)-dt*.35;if(y<-DEEP-5)y=0;a.setY(i,y);a.setX(i,a.getX(i)+Math.sin(T*.5+i)*.004)}a.needsUpdate=true;
+    const b=bubG.attributes.position;
+    for(let i=0;i<NB;i++){let y=b.getY(i)+bv[i];if(y>-1){y=-DEEP;b.setX(i,(R()-.5)*50);b.setZ(i,-4-R()*35);bv[i]=.03+R()*.07}b.setY(i,y);b.setX(i,b.getX(i)+Math.sin(T*2+i)*.01)}b.needsUpdate=true;
+    FU.value=T;
+    schools.forEach(S=>{
+      for(let f=0;f<FISH;f++){
+        dm.rotation.set(0,fishState(S,f,T,dm.position),Math.sin(T*3+f)*.08);dm.updateMatrix();S.im.setMatrixAt(f,dm.matrix);
+      }
+      S.im.instanceMatrix.needsUpdate=true});
+    fbt-=dt;
+    if(fbt<=0){
+      fbt=.3+R()*.5;const S=schools[(R()*schools.length)|0],ry=fishState(S,(R()*FISH)|0,T,tmp),n=1+((R()*2)|0);
+      for(let q2=0;q2<n;q2++){fbi=(fbi+1)%FB;fbl[fbi]=1;fbv[fbi]=.3+R()*.3;fbh[fbi]=R()*6;
+        fbp[fbi*3]=tmp.x+Math.cos(ry)*.8+(R()-.5)*.2;fbp[fbi*3+1]=tmp.y+.05+(R()-.5)*.2;fbp[fbi*3+2]=tmp.z-Math.sin(ry)*.8+(R()-.5)*.2}
+    }
+    for(let i=0;i<FB;i++){
+      let a=0;
+      if(fbl[i]>0){fbl[i]-=dt*.25;fbp[i*3+1]+=fbv[i]*dt;fbp[i*3]+=Math.sin(T*3+fbh[i])*.004;a=Math.max(0,fbl[i])*Math.min(1,(1-fbl[i])*8)*.7}
+      fbc[i*3]=fbc[i*3+1]=fbc[i*3+2]=a;
+    }
+    fbG.attributes.position.needsUpdate=true;fbG.attributes.color.needsUpdate=true;
+    jellies.forEach(J=>{const p=Math.sin(T*1.6+J.ph);
+      J.bell.scale.set(1-p*.1,1+p*.18,1-p*.1);J.g.position.set(J.bx+Math.sin(T*.25+J.ph)*3,J.by+Math.sin(T*.4+J.ph)*3+p*.4,J.g.position.z);J.g.rotation.y=T*.1+J.ph;
+      J.tn.forEach(t=>{const pos=t.ln.geometry.attributes.position;
+        for(let l=0;l<12;l++){const f=l/11,r=1.2*(1-f*.4);pos.setXYZ(l,Math.cos(t.a)*r+Math.sin(T*1.5+l*.5+t.a)*.35*f,-f*(4.5+p*.5),Math.sin(t.a)*r+Math.cos(T*1.3+l*.5+t.a)*.35*f)}
+        pos.needsUpdate=true})});
+    renderer.render(scene,camera);raf=requestAnimationFrame(frame);
+  }
+  frame();
+  return()=>{cancelAnimationFrame(raf);removeEventListener('pointermove',onMove);removeEventListener('pointerdown',onDown);removeEventListener('resize',resize);renderer.dispose()};
+}
+</script>
+
+<script>
+/* ===================== UI (React, no JSX build step) ===================== */
+const h=React.createElement,{useState,useEffect,useRef}=React;
+const DEEP_M=109;
+const SECTIONS=[
+  {id:'home',label:'Home'},
+  {id:'about',label:'About Me',zone:'Sunlight zone · 20 m',side:'right',
+   body:['I’m a designer who cares about the moment a product stops feeling like software and starts feeling obvious. I blend research, interface craft and front-end code.'],
+   list:['Based in Singapore','UX research and strategy','Interface and interaction design']},
+  {id:'projects',label:'Projects',zone:'Twilight zone · 45 m',side:'left',
+   body:['Three recent explorations. Swap these cards for your own case studies.'],
+   cards:[['Project 1','from-[#12457a] to-[#5b46c9]'],['Project 2','from-[#0b6a76] to-[#2fd0b0]'],['Project 3','from-[#6b2f66] to-[#ff7ad9]']]},
+  {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
+   list:['Figma, prototyping, design systems','HTML, CSS, JavaScript, WebGL','Usability testing and accessibility audits','Performance and optimisation']},
+  {id:'game',label:'Game',zone:'Deep zone · 100 m',side:'left',
+   body:['A small arcade of experiments lives down here. Level one is still being built; check back soon.']},
+  {id:'contact',label:'Contact',zone:'The seabed · 109 m',side:'right',
+   body:['Have a project, a role or just an idea? Say hello and I’ll reply within a couple of days.'],
+   social:[['Instagram','https://instagram.com/yourhandle'],['LinkedIn','https://linkedin.com/in/yourhandle'],['GitHub','https://github.com/yourhandle']]}
+];
+const go=id=>document.getElementById(id).scrollIntoView({behavior:'smooth'});
+const glass='w-full max-w-[520px] rounded-3xl border border-white/20 bg-[rgba(4,30,48,.45)] p-6 shadow-[0_30px_80px_rgba(0,10,25,.45),inset_0_1px_0_rgba(255,255,255,.14)] backdrop-blur-xl backdrop-saturate-150 md:p-9';
+
+/* smoothed dive progress + active section */
+function useDive(){
+  const [s,set]=useState({p:0,active:0});
+  useEffect(()=>{
+    let raf,cur=0;
+    const loop=()=>{
+      const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
+      cur+=(Math.min(1,scrollY/max)-cur)*.1;
+      const mid=scrollY+innerHeight*.5;let a=0;
+      SECTIONS.forEach((x,i)=>{const el=document.getElementById(x.id);if(el&&el.offsetTop<=mid)a=i});
+      set(p=>Math.abs(p.p-cur)<.0004&&p.active===a?p:{p:cur,active:a});
+      raf=requestAnimationFrame(loop);
+    };
+    loop();return()=>cancelAnimationFrame(raf);
+  },[]);
+  return s;
+}
+/* reveal-on-view */
+function Reveal({children,className='',from='translate-y-12'}){
+  const ref=useRef(null),[seen,setSeen]=useState(false);
+  useEffect(()=>{
+    const io=new IntersectionObserver(([e])=>{if(e.isIntersecting){setSeen(true);io.disconnect()}},{threshold:.25});
+    io.observe(ref.current);return()=>io.disconnect();
+  },[]);
+  return h('div',{ref,className:`transition-all duration-1000 ease-out ${seen?'translate-x-0 translate-y-0 opacity-100 blur-0':'opacity-0 blur-md '+from} ${className}`},children);
+}
+/* typewriter */
+function Typewriter({words}){
+  const [t,setT]=useState({w:0,n:0,del:false});
+  useEffect(()=>{
+    const full=words[t.w],id=setTimeout(()=>{
+      if(!t.del&&t.n<full.length)setT({...t,n:t.n+1});
+      else if(!t.del)setT({...t,del:true});
+      else if(t.n>0)setT({...t,n:t.n-1});
+      else setT({w:(t.w+1)%words.length,n:0,del:false});
+    },!t.del&&t.n===full.length?1600:t.del?30:70);
+    return()=>clearTimeout(id);
+  },[t]);
+  return h('p',{className:'mt-5 font-mono text-sm text-glow'},'> ',words[t.w].slice(0,t.n),h('i',{className:'ml-1 inline-block h-4 w-2 bg-glow align-[-2px] [animation:blink_1s_steps(2)_infinite]'}));
+}
+/* chrome: nav + depth gauge */
+function Chrome(){
+  const {p,active}=useDive(),[open,setOpen]=useState(false);
+  return h(React.Fragment,null,
+    h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-between px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
+      h('a',{href:'#home',onClick:e=>{e.preventDefault();go('home')},className:'font-display text-xl text-ink'},'Ming Thong'),
+      h('nav',{'data-ui':1,className:'hidden gap-0.5 rounded-full border border-white/20 bg-[rgba(4,30,48,.45)] p-1 backdrop-blur-xl md:flex'},
+        SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>go(s.id),className:`rounded-full px-4 py-2 text-sm transition ${i===active?'bg-ink text-[#04263a]':'text-dim hover:bg-white/10'}`},s.label))),
+      h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:'flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full border border-white/20 bg-[rgba(4,30,48,.45)] backdrop-blur-xl md:hidden'},
+        [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
+    h('div',{'data-ui':1,className:`fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-[#031528]/80 backdrop-blur-2xl transition-all duration-500 md:hidden ${open?'opacity-100':'pointer-events-none opacity-0'}`},
+      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{setOpen(false);go(s.id)},style:{transitionDelay:open?i*60+'ms':'0ms'},className:`font-display text-4xl transition-all duration-500 ${open?'translate-y-0':'translate-y-4'} ${i===active?'text-glow':'text-ink'}`},s.label))),
+    h('div',{'aria-hidden':true,className:'pointer-events-none fixed right-6 top-1/2 z-40 hidden h-[44vh] w-0.5 -translate-y-1/2 rounded bg-white/20 md:block'},
+      h('div',{className:'absolute -left-[5px] h-3 w-3 rounded-full bg-glow shadow-[0_0_14px_#5cffd6]',style:{top:`calc(${p*100}% - ${p*12}px)`}}),
+      h('span',{className:'absolute right-5 whitespace-nowrap text-[13px] font-semibold text-ink [text-shadow:0_1px_8px_rgba(0,0,0,.5)]',style:{top:`calc(${p*100}% - ${p*12}px - 3px)`}},Math.round(p*DEEP_M)+' m')));
+}
+function Hero(){
+  const [on,setOn]=useState(false);
+  useEffect(()=>{const id=setTimeout(()=>setOn(true),150);return()=>clearTimeout(id)},[]);
+  const word=(w,off)=>h('span',{className:'block'},[...w].map((c,i)=>h('span',{key:i,'aria-hidden':true,style:{transitionDelay:(off+i*70)+'ms'},className:`inline-block transition-all duration-[1400ms] ease-[cubic-bezier(.2,.7,.2,1)] ${on?'translate-y-0 opacity-100 blur-0':'translate-y-10 opacity-0 blur-lg'}`},c)));
+  const fade=d=>({style:{transitionDelay:d+'ms'},className:`transition-all duration-1000 ${on?'translate-y-0 opacity-100':'translate-y-6 opacity-0'}`});
+  return h('section',{id:'home',className:'relative flex min-h-[100svh] items-center px-[6vw] md:px-[9vw]'},
+    h('div',null,
+      h('h1',{'aria-label':'Ming Thong',className:'font-display text-[clamp(56px,15vw,150px)] font-light leading-[.92] tracking-[-.03em] [text-shadow:0_0_60px_rgba(120,240,255,.35)]'},word('Ming',200),word('Thong',600)),
+      h('p',{...fade(1400),className:fade(1400).className+' mt-6 max-w-[42ch] text-base leading-relaxed text-dim md:text-xl'},'UX/UI designer and experience strategist. I design digital experiences that feel intuitive, engaging, and worth remembering.'),
+      h('div',fade(1700),h(Typewriter,{words:['building for the web','designing for people','optimizing every frame']})),
+      h('div',{...fade(2000),className:fade(2000).className+' mt-6 flex flex-wrap gap-2.5'},
+        [['</>','Develop'],['◇','Design'],['⚡','Optimize'],['☺','Accessible']].map(([i,l])=>h('span',{key:l,className:'rounded-xl border border-white/20 bg-[rgba(4,30,48,.45)] px-3.5 py-2 text-[13px] backdrop-blur-xl'},h('b',{className:'mr-2 font-normal text-glow'},i),l)))),
+    h('p',{...fade(2400),className:fade(2400).className+' absolute bottom-[calc(1.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 text-center text-[13px] text-dim'},'Scroll to dive · click the water to make bubbles'));
+}
+function Card({label,grad}){
+  const [t,setT]=useState('');
+  const move=e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;setT(`perspective(600px) rotateX(${-y*14}deg) rotateY(${x*14}deg) scale(1.03)`)};
+  return h('div',{onMouseMove:move,onMouseLeave:()=>setT(''),style:{transform:t},className:`flex h-24 items-end rounded-2xl border border-white/20 bg-gradient-to-br ${grad} p-3.5 text-sm text-white transition-transform duration-200`},label);
+}
+function Panel({s}){
+  const from=s.side==='right'?'translate-x-16':'-translate-x-16';
+  return h('section',{id:s.id,className:`flex min-h-[100svh] items-center px-[6vw] md:px-[9vw] ${s.side==='right'?'md:justify-end':''}`},
+    h(Reveal,{from,className:glass},
+      h('h2',{className:'font-display text-[clamp(34px,5vw,52px)] font-light leading-none tracking-tight'},s.label),
+      h('div',{className:'mb-4 mt-2.5 text-[13px] text-glow'},s.zone),
+      (s.body||[]).map((b,i)=>h('p',{key:i,className:'text-base leading-relaxed text-dim'},b)),
+      s.list&&h('ul',{className:'mt-3 list-disc space-y-1 pl-5 text-base leading-relaxed text-dim'},s.list.map(x=>h('li',{key:x},x))),
+      s.cards&&h('div',{className:'mt-5 grid gap-3 sm:grid-cols-3 md:grid-cols-1'},s.cards.map(([l,g])=>h(Card,{key:l,label:l,grad:g}))),
+      s.social&&h('div',{className:'mt-6 flex flex-wrap gap-2.5'},s.social.map(([l,u])=>h('a',{key:l,href:u,target:'_blank',rel:'noopener noreferrer',className:'rounded-full border border-white/20 px-5 py-2.5 text-sm text-ink transition hover:bg-ink hover:text-[#04263a]'},l)))));
+}
+function App(){
+  const ref=useRef(null);
+  useEffect(()=>createOcean(document.getElementById('ocean')),[]);
+  return h(React.Fragment,null,
+    h(Chrome),
+    h('main',{className:'relative z-10'},h(Hero),SECTIONS.slice(1).map(s=>h(Panel,{key:s.id,s}))),
+    h('footer',{className:'relative z-10 px-5 pb-[calc(1.75rem+env(safe-area-inset-bottom,0px))] pt-8 text-center text-[13px] text-[#7fa8b5]'},'© 2026 Ming Thong · Built from scratch'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
