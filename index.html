@@ -26,6 +26,7 @@ html{scroll-behavior:smooth;background:#031528}
 body{margin:0;overflow-x:hidden}
 @keyframes blink{50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation-duration:.01s!important;scroll-behavior:auto!important}}
+html[data-motion="off"],html[data-motion="off"] *{transition-duration:.01s!important;animation:none!important;scroll-behavior:auto!important}
 </style>
 </head>
 <body class="bg-abyss text-ink font-sans antialiased">
@@ -36,6 +37,57 @@ body{margin:0;overflow-x:hidden}
 <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
 <script>
+/* ===================== AUDIO (Web Audio, fully synthesised, no files) ===================== */
+const AUDIO=(()=>{
+  let ctx,master,ambF,rainG,wb,vol=.5,depth=0,lastD=-1,wx='sunny';
+  const level=()=>vol*vol;
+  const noise=(type)=>{const n=ctx.sampleRate*3,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);let l=0;
+    for(let i=0;i<n;i++){const w=Math.random()*2-1;if(type==='brown'){l=(l+.02*w)/1.02;d[i]=l*3.5}else d[i]=w}return b};
+  const loop=buf=>{const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s};
+  function blip(){
+    if(!ctx||ctx.state!=='running'||vol<=0)return;
+    const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain(),f=260+Math.random()*520;
+    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*2.2,t+.09);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+.14);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+.16);
+  }
+  const sched=()=>{blip();setTimeout(sched,500+Math.random()*2200)};
+  function setDepth(d,force){
+    depth=d;if(!ctx||(!force&&Math.abs(d-lastD)<.01))return;
+    lastD=d;ambF.frequency.setTargetAtTime(750-520*d,ctx.currentTime,.3);
+  }
+  function setWeather(n){wx=n;if(rainG)rainG.gain.setTargetAtTime(n==='rain'?.1:0,ctx.currentTime,1.5)}
+  function setVolume(v){vol=v;if(master)master.gain.setTargetAtTime(level(),ctx.currentTime,.05)}
+  function start(){
+    if(ctx){ctx.resume();return}
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    try{ctx=new AC()}catch(e){ctx=null;return}
+    master=ctx.createGain();master.gain.value=level();master.connect(ctx.destination);
+    const br=noise('brown');wb=noise('white');
+    ambF=ctx.createBiquadFilter();ambF.type='lowpass';ambF.frequency.value=700;ambF.Q.value=.7;
+    const ag=ctx.createGain();ag.gain.value=.5;
+    loop(br).connect(ambF);ambF.connect(ag);ag.connect(master);
+    const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=.08;lg.gain.value=160;lfo.connect(lg);lg.connect(ambF.frequency);lfo.start();
+    const rf=ctx.createBiquadFilter();rf.type='highpass';rf.frequency.value=2500;rainG=ctx.createGain();rainG.gain.value=0;
+    loop(wb).connect(rf);rf.connect(rainG);rainG.connect(master);
+    setDepth(depth,true);setWeather(wx);sched();
+    document.addEventListener('visibilitychange',()=>{ctx&&(document.hidden?ctx.suspend():ctx.resume())});
+  }
+  function whoosh(){
+    if(!ctx||ctx.state!=='running'||vol<=0)return;
+    const t=ctx.currentTime,s=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),g=ctx.createGain();
+    s.buffer=wb;bp.type='bandpass';bp.Q.value=1.2;
+    bp.frequency.setValueAtTime(250,t);bp.frequency.exponentialRampToValueAtTime(1400,t+.25);bp.frequency.exponentialRampToValueAtTime(300,t+1);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+1.1);
+    s.connect(bp);bp.connect(g);g.connect(master);s.start(t,Math.random()*1.5);s.stop(t+1.2);
+    const o=ctx.createOscillator(),og=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(45,t+.5);
+    og.gain.setValueAtTime(.4,t);og.gain.exponentialRampToValueAtTime(.0001,t+.55);
+    o.connect(og);og.connect(master);o.start(t);o.stop(t+.6);
+  }
+  return{start,setVolume,setDepth,setWeather,whoosh};
+})();
+
 /* ===================== 3D SCENE (Three.js) ===================== */
 function createOcean(canvas){
   const R=Math.random,PI=Math.PI,DEEP=130,mobile=innerWidth<768;
@@ -63,7 +115,7 @@ function createOcean(canvas){
     cur.stops.forEach((c,i)=>c.lerp(tgt.c.stops[i],k));
     CP.forEach(p=>cur[p].lerp(tgt.c[p],k));NP.forEach(p=>cur[p]+=(tgt[p]-cur[p])*k);
   }
-  function setWeather(n,instant){tgt=WX[n]||tgt;if(instant)stepWeather(1)}
+  function setWeather(n,instant){tgt=WX[n]||tgt;if(instant)stepWeather(1);AUDIO.setWeather(n)}
   const stops=cur.stops;
   const zoneColor=(t,out)=>{const f=Math.min(.9999,t)*4,i=Math.floor(f);return out.copy(stops[i]).lerp(stops[i+1],f-i)};
   const U={uT:{value:0},uFog:{value:new THREE.Color()},uCam:{value:new THREE.Vector3()},uSkyA:{value:cur.skyA},uSkyB:{value:cur.skyB},uRain:{value:0},uLight:{value:1}};
@@ -164,6 +216,7 @@ function createOcean(canvas){
     arr[i*3]+=dx*f;arr[i*3+1]+=dy*f;arr[i*3+2]+=dz*f;
   }
   function disperse(p){
+    AUDIO.whoosh();if(mot<.05)return;
     const a=snowG.attributes.position,b=bubG.attributes.position;
     for(let i=0;i<SNOW;i++)shove(sv,i,a.getX(i),a.getY(i),a.getZ(i),p,14);
     for(let i=0;i<NB;i++)shove(bw,i,b.getX(i),b.getY(i),b.getZ(i),p,14);
@@ -187,16 +240,17 @@ function createOcean(canvas){
 
   /* loop */
   const clock=new THREE.Clock(),col=new THREE.Color(),reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let T=0,st=0,raf;
+  let T=0,st=0,raf,mot=1;
   function frame(){
-    const dt=Math.min(clock.getDelta(),.05);T+=dt*(reduce?.3:1);
+    const raw=Math.min(clock.getDelta(),.05),dt=raw*mot;T+=dt;
     const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
-    st+=(Math.min(1,scrollY/max)-st)*(1-Math.pow(.004,dt));
+    st+=(Math.min(1,scrollY/max)-st)*(1-Math.pow(.004,raw));
     mx+=(tMx-mx)*.05;my+=(tMy-my)*.05;
     const cy=-3-st*DEEP,k=Math.min(1,st*5);
-    camera.position.set(mx*3+Math.sin(T*.3)*.8,cy+Math.sin(T*.6)*.4,0);
-    camera.lookAt(mx*8,cy+18*(1-k)-2*k-my*4,-30);
-    stepWeather(1-Math.exp(-dt*.6));zoneColor(st,col);scene.background=col;scene.fog.color.copy(col);scene.fog.density=.02+.016*st+.006*cur.rain;
+    camera.position.set(mx*3*mot+Math.sin(T*.3)*.8,cy+Math.sin(T*.6)*.4,0);
+    camera.lookAt(mx*8*mot,cy+18*(1-k)-2*k-my*4*mot,-30);
+    AUDIO.setDepth(st);
+    stepWeather(1-Math.exp(-raw*.6));zoneColor(st,col);scene.background=col;scene.fog.color.copy(col);scene.fog.density=.02+.016*st+.006*cur.rain;
     U.uT.value=T;U.uFog.value.copy(col);U.uCam.value.copy(camera.position);U.uRain.value=cur.rain;U.uLight.value=cur.light;
     amb.color.copy(cur.amb);sunL.color.copy(cur.sun);amb.intensity=(.25+.6*(1-st))*cur.ambI/.8;sunL.intensity=(.12+1.1*(1-st))*cur.sunI/1.2;
     rays.forEach(r=>{r.material.color.copy(cur.rayCol);r.material.opacity=Math.max(0,r.userData.b*(1-st*1.35))*cur.ray*(.7+.3*Math.sin(T*.7+r.userData.p));r.position.x+=Math.sin(T*.2+r.userData.p)*.004});
@@ -205,7 +259,7 @@ function createOcean(canvas){
     for(let i=0;i<SNOW;i++){const j=i*3;let y=a.getY(i)-dt*.35+sv[j+1]*dt;if(y<-DEEP-5||y>0)y=y>0?-DEEP-4:0;a.setY(i,y);a.setX(i,a.getX(i)+Math.sin(T*.5+i)*.004+sv[j]*dt);a.setZ(i,a.getZ(i)+sv[j+2]*dt);sv[j]*=damp;sv[j+1]*=damp;sv[j+2]*=damp}a.needsUpdate=true;
     const b=bubG.attributes.position;
     for(let i=0;i<NB;i++){const j=i*3;let y=b.getY(i)+bv[i]+bw[j+1]*dt;if(y>-1){y=-DEEP;b.setX(i,(R()-.5)*50);b.setZ(i,-4-R()*35);bv[i]=.03+R()*.07;bw[j]=bw[j+1]=bw[j+2]=0}b.setY(i,y);b.setX(i,b.getX(i)+Math.sin(T*2+i)*.01+bw[j]*dt);b.setZ(i,b.getZ(i)+bw[j+2]*dt);bw[j]*=damp;bw[j+1]*=damp;bw[j+2]*=damp}b.needsUpdate=true;
-    for(let n=rings.length-1;n>=0;n--){const r=rings[n];r.age+=dt;const u=r.age/1.5;
+    for(let n=rings.length-1;n>=0;n--){const r=rings[n];r.age+=raw;const u=r.age/1.5;
       if(u>=1){scene.remove(r.s);r.m.dispose();rings.splice(n,1);continue}
       r.s.scale.setScalar(2+u*RADIUS*2.2);r.m.opacity=.8*(1-u)*(1-u)}
     jellies.forEach(J=>{J.v.addScaledVector(J.o,-2.5*dt).multiplyScalar(Math.exp(-dt*1.2));J.o.addScaledVector(J.v,dt)});
@@ -238,7 +292,7 @@ function createOcean(canvas){
     renderer.render(scene,camera);raf=requestAnimationFrame(frame);
   }
   frame();
-  return{setWeather,dispose:()=>{cancelAnimationFrame(raf);removeEventListener('pointermove',onMove);removeEventListener('pointerdown',onDown);removeEventListener('resize',resize);renderer.dispose()}};
+  return{setWeather,setMotion:v=>{mot=v},dispose:()=>{cancelAnimationFrame(raf);removeEventListener('pointermove',onMove);removeEventListener('pointerdown',onDown);removeEventListener('resize',resize);renderer.dispose()}};
 }
 </script>
 
@@ -331,7 +385,7 @@ function Typewriter({words}){
   return h('p',{className:'mt-5 font-display text-lg font-semibold text-hero [text-shadow:0_1px_14px_var(--shadow)]'},'> ',words[t.w].slice(0,t.n),h('i',{className:'ml-1 inline-block h-4 w-2 bg-hero align-[-2px] [animation:blink_1s_steps(2)_infinite]'}));
 }
 /* chrome: nav, depth gauge, weather chip */
-function Chrome({weather,onWeather}){
+function Chrome({weather,onWeather,onSettings}){
   const {p,active}=useDive(),[open,setOpen]=useState(false);
   const top=`calc(${p*100}% - ${p*12}px)`;
   return h(React.Fragment,null,
@@ -347,11 +401,12 @@ function Chrome({weather,onWeather}){
       h('div',{className:'absolute -left-[5px] h-3 w-3 rounded-full bg-glow shadow-[0_0_12px_var(--glow)]',style:{top}}),
       h('span',{className:`absolute right-5 whitespace-nowrap rounded-full px-3 py-0.5 text-[13px] font-semibold text-ink ${chip}`,style:{top,transform:'translateY(-30%)'}},Math.round(p*DEEP_M)+' m')),
     h('button',{'data-ui':1,onClick:onWeather,title:'Change the weather',className:`fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-50 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-ink transition hover:scale-105 ${chip}`},
-      h('span',{className:'h-2.5 w-2.5 rounded-full bg-glow shadow-[0_0_10px_var(--glow)]'}),WEATHER[weather].label,h('span',{className:'font-normal text-dim'},'· tap to change')));
+      h('span',{className:'h-2.5 w-2.5 rounded-full bg-glow shadow-[0_0_10px_var(--glow)]'}),WEATHER[weather].label,h('span',{className:'font-normal text-dim'},'· tap to change')),
+    h('button',{'data-ui':1,onClick:onSettings,'aria-label':'Motion and sound settings',className:`fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-50 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-ink transition hover:scale-105 ${chip}`},'⚙ Settings'));
 }
-function Hero(){
+function Hero({ready}){
   const [on,setOn]=useState(false);
-  useEffect(()=>{const id=setTimeout(()=>setOn(true),150);return()=>clearTimeout(id)},[]);
+  useEffect(()=>{if(!ready)return;const id=setTimeout(()=>setOn(true),150);return()=>clearTimeout(id)},[ready]);
   const word=(w,off)=>h('span',{className:'block'},[...w].map((c,i)=>h('span',{key:i,'aria-hidden':true,style:{transitionDelay:(off+i*70)+'ms'},className:`inline-block transition-all duration-[1400ms] ease-[cubic-bezier(.2,.7,.2,1)] ${on?'translate-y-0 opacity-100 blur-0':'translate-y-10 opacity-0 blur-lg'}`},c)));
   const fade=(d,x='')=>({style:{transitionDelay:d+'ms'},className:`transition-all duration-1000 ${on?'translate-y-0 opacity-100':'translate-y-6 opacity-0'} ${x}`});
   return h('section',{id:'home',className:'relative flex min-h-[100svh] items-center px-[6vw] md:px-[9vw]'},
@@ -379,13 +434,42 @@ function Panel({s}){
       s.cards&&h('div',{className:'mt-5 grid gap-3 sm:grid-cols-3 md:grid-cols-1'},s.cards.map(([l,g])=>h(Card,{key:l,label:l,grad:g}))),
       s.social&&h('div',{className:'mt-6 flex flex-wrap gap-2.5'},s.social.map(([l,u])=>h('a',{key:l,href:u,target:'_blank',rel:'noopener noreferrer',className:'rounded-full border border-line px-5 py-2.5 text-[15px] font-bold text-ink transition hover:bg-ink hover:text-inv'},l)))));
 }
+function Slider({label,hint,value,onChange,onGrab}){
+  return h('label',{className:'mt-5 block'},
+    h('span',{className:'flex items-baseline justify-between text-[17px] font-bold text-ink'},label,h('span',{className:'text-[15px] text-glow'},Math.round(value*100)+'%')),
+    h('input',{type:'range',min:0,max:100,step:1,value:Math.round(value*100),onChange:e=>onChange(e.target.value/100),onPointerDown:onGrab,className:'mt-2 h-2 w-full cursor-pointer accent-glow'}),
+    h('span',{className:'mt-1 block text-[14px] font-medium text-dim'},hint));
+}
+function Settings({cfg,setCfg,first,onDone}){
+  return h('div',{'data-ui':1,role:'dialog','aria-modal':true,'aria-label':'Motion and sound settings',className:'fixed inset-0 z-[60] flex items-center justify-center bg-black/30 p-5 backdrop-blur-md'},
+    h('div',{className:glass},
+      h('div',{className:'text-[15px] font-bold text-glow'},first?'Before you dive in':'Settings'),
+      h('h2',{className:'font-display text-[clamp(34px,5vw,48px)] font-extrabold leading-none text-ink'},first?'Ming Thong':'Motion & sound'),
+      first&&h('p',{className:'mt-3 text-[17px] font-medium leading-relaxed text-dim'},'Set the motion and sound to whatever feels comfortable. You can change both later.'),
+      h(Slider,{label:'Motion',hint:'Water, fish, jellyfish and parallax. 0% keeps everything still.',value:cfg.motion,onChange:v=>setCfg({...cfg,motion:v})}),
+      h(Slider,{label:'Sound volume',hint:'Ambient water, bubbles and the click whoosh. 0% is silent.',value:cfg.volume,onChange:v=>setCfg({...cfg,volume:v}),onGrab:()=>AUDIO.start()}),
+      h('button',{autoFocus:true,onClick:onDone,className:'mt-7 w-full rounded-full bg-ink px-6 py-3 text-[17px] font-bold text-inv transition hover:scale-[1.02]'},first?'Dive in':'Done')));
+}
+const loadCfg=()=>{
+  let c={motion:matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1,volume:.5};
+  try{const s=JSON.parse(localStorage.getItem('dive-cfg'));if(s&&typeof s.motion==='number'&&typeof s.volume==='number')c=s}catch(e){}
+  return c;
+};
 function App(){
   const ocean=useRef(null);
   useEffect(()=>{ocean.current=createOcean(document.getElementById('ocean'));return()=>ocean.current.dispose()},[]);
   const [weather,next]=useWeather(ocean);
+  const [cfg,setCfg]=useState(loadCfg),[stage,setStage]=useState('intro'),[started,setStarted]=useState(false);
+  useEffect(()=>{
+    ocean.current&&ocean.current.setMotion(cfg.motion);AUDIO.setVolume(cfg.volume);
+    document.documentElement.dataset.motion=cfg.motion<.05?'off':'on';
+    try{localStorage.setItem('dive-cfg',JSON.stringify(cfg))}catch(e){}
+  },[cfg]);
+  useEffect(()=>{document.body.style.overflow=stage==='done'?'':'hidden'},[stage]);
   return h(React.Fragment,null,
-    h(Chrome,{weather,onWeather:next}),
-    h('main',{className:'relative z-10'},h(Hero),SECTIONS.slice(1).map(s=>h(Panel,{key:s.id,s}))),
+    h(Chrome,{weather,onWeather:next,onSettings:()=>setStage('open')}),
+    h('main',{className:'relative z-10'},h(Hero,{ready:started}),SECTIONS.slice(1).map(s=>h(Panel,{key:s.id,s}))),
+    stage!=='done'&&h(Settings,{cfg,setCfg,first:!started,onDone:()=>{AUDIO.start();setStarted(true);setStage('done')}}),
     h('footer',{className:'relative z-10 px-5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-8 text-center'},
       h('span',{className:`inline-block rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink ${chip}`},'© 2026 Ming Thong · Built from scratch')));
 }
