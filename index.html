@@ -455,6 +455,24 @@ const loadCfg=()=>{
   try{const s=JSON.parse(localStorage.getItem('dive-cfg'));if(s&&typeof s.motion==='number'&&typeof s.volume==='number')c=s}catch(e){}
   return c;
 };
+function Footer(){
+  const social=SECTIONS.find(s=>s.id==='contact').social,link='text-[15px] font-semibold text-dim transition hover:text-ink';
+  return h('footer',{className:'relative z-10 w-full border-t border-line bg-glass px-[6vw] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-12 backdrop-blur-xl backdrop-saturate-150 md:px-[9vw]'},
+    h('div',{className:'mx-auto max-w-[1100px]'},
+      h('div',{className:'grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]'},
+        h('div',null,
+          h('div',{className:'font-display text-3xl font-extrabold leading-none text-ink'},'Ming Thong'),
+          h('p',{className:'mt-3 max-w-[34ch] text-[16px] font-medium leading-relaxed text-dim'},'UX/UI designer and experience strategist based in Singapore.')),
+        h('nav',{'aria-label':'Footer'},
+          h('div',{className:'mb-3 text-[14px] font-bold text-glow'},'Explore'),
+          h('ul',{className:'space-y-2'},SECTIONS.map(s=>h('li',{key:s.id},h('button',{onClick:()=>go(s.id),className:link},s.label))))),
+        h('div',null,
+          h('div',{className:'mb-3 text-[14px] font-bold text-glow'},'Connect'),
+          h('ul',{className:'space-y-2'},social.map(([l,u])=>h('li',{key:l},h('a',{href:u,target:'_blank',rel:'noopener noreferrer',className:link},l+' ↗')))))),
+      h('div',{className:'mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5'},
+        h('span',{className:'text-[14px] font-semibold text-dim'},'© 2026 Ming Thong · Built from scratch'),
+        h('button',{onClick:()=>go('home'),className:'rounded-full border border-line px-4 py-2 text-[14px] font-bold text-ink transition hover:bg-ink hover:text-inv'},'↑ Back to the surface'))));
+}
 function App(){
   const ocean=useRef(null);
   useEffect(()=>{ocean.current=createOcean(document.getElementById('ocean'));return()=>ocean.current.dispose()},[]);
@@ -470,9 +488,38 @@ function App(){
     h(Chrome,{weather,onWeather:next,onSettings:()=>setStage('open')}),
     h('main',{className:'relative z-10'},h(Hero,{ready:started}),SECTIONS.slice(1).map(s=>h(Panel,{key:s.id,s}))),
     stage!=='done'&&h(Settings,{cfg,setCfg,first:!started,onDone:()=>{AUDIO.start();setStarted(true);setStage('done')}}),
-    h('footer',{className:'relative z-10 px-5 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-8 text-center'},
-      h('span',{className:`inline-block rounded-full px-4 py-1.5 text-[13px] font-semibold text-ink ${chip}`},'© 2026 Ming Thong · Built from scratch')));
+    h(Footer));
 }
+/* press feedback on every button and link: a ripple grows from the pointer and the element dips slightly (0.97), like Animate UI's RippleButton, written without a build step */
+(()=>{
+  const TAP=.97,DUR=500;
+  document.addEventListener('pointerdown',e=>{
+    const el=e.target.closest('button,a[href]');
+    if(!el||e.button>0||document.documentElement.dataset.motion==='off'||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+    if(getComputedStyle(el).position==='static')el.style.position='relative';
+    let box=el.querySelector(':scope>[data-ripples]');
+    if(!box){box=document.createElement('span');box.setAttribute('data-ripples','');box.setAttribute('aria-hidden','true');box.style.cssText='position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none';el.appendChild(box)}
+    const r=el.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,dot=document.createElement('span');
+    dot.style.cssText=`position:absolute;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px;width:${d}px;height:${d}px;border-radius:50%;background:currentColor;pointer-events:none`;
+    box.appendChild(dot);
+    dot.animate([{transform:'scale(0)',opacity:.35},{transform:'scale(1)',opacity:0}],{duration:DUR,easing:'cubic-bezier(.3,.55,.4,1)'}).onfinish=()=>dot.remove();
+    el._ripEnd=performance.now()+DUR;
+    const down=el.animate([{scale:1},{scale:TAP}],{duration:100,easing:'ease-out',fill:'forwards'});
+    const up=()=>{removeEventListener('pointerup',up);removeEventListener('pointercancel',up);down.cancel();el.animate([{scale:TAP},{scale:1}],{duration:160,easing:'ease-out'})};
+    addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  });
+  /* let the ripple finish playing, then run the button's action: hold the click, then replay it once the ripple ends */
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('button,a[href]');
+    if(!el||el._replay||!el._ripEnd)return;
+    const wait=el._ripEnd-performance.now();
+    if(wait<=0)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    if(el._pending)return;
+    el._pending=true;
+    setTimeout(()=>{el._pending=false;el._replay=true;el.click();el._replay=false},wait);
+  },true);
+})();
 ReactDOM.createRoot(document.getElementById('root')).render(h(App));
 </script>
 </body>
