@@ -312,9 +312,11 @@ const ORDER=Object.keys(WEATHER);
 const SECTIONS=[
   {id:'home',label:'Home'},
   {id:'about',label:'About Me',zone:'Sunlight zone · 20 m',side:'right',
-   body:['I’m a designer who cares about the moment a product stops feeling like software and starts feeling obvious. I blend research, interface craft and front-end code.'],
+  body: [
+  'I’m a UX/UI graduate based in Singapore, guided by the belief that good design is measured by how effectively it improves an experience—not how much attention it draws. I see design as a quiet enabler, supporting users in achieving their goals with minimal friction.'
+],
    list:['Based in Singapore','UX research and strategy','Interface and interaction design']},
-  {id:'projects',label:'Projects',zone:'Twilight zone · 45 m',side:'left',
+  {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
    body:['Three recent explorations. Swap these cards for your own case studies.'],
    cards:[['Project 1','from-[#12457a] to-[#5b46c9]'],['Project 2','from-[#0b6a76] to-[#2fd0b0]'],['Project 3','from-[#6b2f66] to-[#ff7ad9]']]},
   {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
@@ -326,6 +328,7 @@ const SECTIONS=[
    social:[['Instagram','https://instagram.com/yourhandle'],['LinkedIn','https://linkedin.com/in/yourhandle'],['GitHub','https://github.com/yourhandle']]}
 ];
 const go=id=>document.getElementById(id).scrollIntoView({behavior:'smooth'});
+const open_=s=>s.href?(location.href=s.href):go(s.id);
 const chip='border border-line bg-glass backdrop-blur-xl';
 const glass='w-full max-w-[520px] rounded-3xl border border-line bg-glass p-6 shadow-[0_30px_80px_rgba(0,10,25,.35)] backdrop-blur-xl backdrop-saturate-150 md:p-9';
 
@@ -392,11 +395,11 @@ function Chrome({weather,onWeather,onSettings}){
     h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
       h('a',{href:'#home',onClick:e=>{e.preventDefault();go('home')},className:`rounded-full px-4 py-1.5 font-display text-xl font-bold text-ink ${chip}`},'Ming Thong'),
       h('nav',{'data-ui':1,className:`hidden gap-0.5 rounded-full p-1 md:flex ${chip}`},
-        SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>go(s.id),className:`rounded-full px-4 py-2 text-[15px] font-semibold transition ${i===active?'bg-ink text-inv':'text-dim hover:text-ink'}`},s.label))),
+        SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>open_(s),className:`rounded-full px-4 py-2 text-[15px] font-semibold transition ${i===active?'bg-ink text-inv':'text-dim hover:text-ink'}`},s.label))),
       h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:`flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full md:hidden ${chip}`},
         [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 rounded bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
     h('div',{'data-ui':1,className:`fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-glass backdrop-blur-3xl transition-all duration-500 md:hidden ${open?'opacity-100':'pointer-events-none opacity-0'}`},
-      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{setOpen(false);go(s.id)},style:{transitionDelay:open?i*60+'ms':'0ms'},className:`font-display text-4xl font-bold transition-all duration-500 ${open?'translate-y-0':'translate-y-4'} ${i===active?'text-glow':'text-ink'}`},s.label))),
+      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{setOpen(false);open_(s)},style:{transitionDelay:open?i*60+'ms':'0ms'},className:`font-display text-4xl font-bold transition-all duration-500 ${open?'translate-y-0':'translate-y-4'} ${i===active?'text-glow':'text-ink'}`},s.label))),
     h('div',{'aria-hidden':true,className:'pointer-events-none fixed right-6 top-1/2 z-40 hidden h-[44vh] w-0.5 -translate-y-1/2 rounded bg-line md:block'},
       h('div',{className:'absolute -left-[5px] h-3 w-3 rounded-full bg-glow shadow-[0_0_12px_var(--glow)]',style:{top}}),
       h('span',{className:`absolute right-5 whitespace-nowrap rounded-full px-3 py-0.5 text-[13px] font-semibold text-ink ${chip}`,style:{top,transform:'translateY(-30%)'}},Math.round(p*DEEP_M)+' m')),
@@ -416,7 +419,14 @@ function Hero({ready}){
       h('div',fade(1700),h(Typewriter,{words:['building for the web','designing for people','optimizing every frame']})),
       h('div',fade(2000,'mt-6 flex flex-wrap gap-2.5'),
         [['</>','Develop'],['◇','Design'],['⚡','Optimize'],['☺','Accessible']].map(([i,l])=>h('span',{key:l,className:`rounded-xl px-3.5 py-2 text-[14px] font-semibold text-ink ${chip}`},h('b',{className:'mr-2 font-bold text-glow'},i),l)))),
-    h('p',fade(2400,'absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 text-center text-[14px] font-semibold text-hero [text-shadow:0_1px_2px_var(--shadow),0_0_10px_var(--shadow),0_0_24px_var(--shadow)]'),'Scroll to dive · click the water to make bubbles'));
+    h(
+  'p',
+  fade(
+    2400,
+    'absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 whitespace-nowrap text-center text-[13px] font-medium tracking-[0.08em] text-white/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.65)]'
+  ),
+  'SCROLL TO EXPLORE  ·  CLICK WATER FOR BUBBLES'
+));
 }
 function Card({label,grad}){
   const [t,setT]=useState('');
@@ -432,6 +442,7 @@ function Panel({s}){
       (s.body||[]).map((b,i)=>h('p',{key:i,className:'text-[17px] font-medium leading-relaxed text-dim'},b)),
       s.list&&h('ul',{className:'mt-3 list-disc space-y-1 pl-5 text-[17px] font-medium leading-relaxed text-dim marker:text-glow'},s.list.map(x=>h('li',{key:x},x))),
       s.cards&&h('div',{className:'mt-5 grid gap-3 sm:grid-cols-3 md:grid-cols-1'},s.cards.map(([l,g])=>h(Card,{key:l,label:l,grad:g}))),
+      s.href&&h('a',{href:s.href,className:'mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03]'},'View full portfolio →'),
       s.social&&h('div',{className:'mt-6 flex flex-wrap gap-2.5'},s.social.map(([l,u])=>h('a',{key:l,href:u,target:'_blank',rel:'noopener noreferrer',className:'rounded-full border border-line px-5 py-2.5 text-[15px] font-bold text-ink transition hover:bg-ink hover:text-inv'},l)))));
 }
 function Slider({label,hint,value,onChange,onGrab}){
@@ -465,7 +476,7 @@ function Footer(){
           h('p',{className:'mt-3 max-w-[34ch] text-[16px] font-medium leading-relaxed text-dim'},'UX/UI designer and Experience Strategist based in Singapore.')),
         h('nav',{'aria-label':'Footer'},
           h('div',{className:'mb-3 text-[14px] font-bold text-glow'},'Explore'),
-          h('ul',{className:'space-y-2'},SECTIONS.map(s=>h('li',{key:s.id},h('button',{onClick:()=>go(s.id),className:link},s.label))))),
+          h('ul',{className:'space-y-2'},SECTIONS.map(s=>h('li',{key:s.id},h('button',{onClick:()=>open_(s),className:link},s.label))))),
         h('div',null,
           h('div',{className:'mb-3 text-[14px] font-bold text-glow'},'Connect'),
           h('ul',{className:'space-y-2'},social.map(([l,u])=>h('li',{key:l},h('a',{href:u,target:'_blank',rel:'noopener noreferrer',className:link},l+' ↗')))))),
