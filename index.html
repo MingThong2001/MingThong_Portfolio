@@ -15,13 +15,13 @@ tailwind.config={theme:{extend:{
 @property --ink{syntax:'<color>';inherits:true;initial-value:#04283d}
 @property --dim{syntax:'<color>';inherits:true;initial-value:#164a63}
 @property --glow{syntax:'<color>';inherits:true;initial-value:#006a8c}
-@property --glass{syntax:'<color>';inherits:true;initial-value:rgba(255,255,255,.72)}
+@property --glass{syntax:'<color>';inherits:true;initial-value:rgba(255,255,255,.88)}
 @property --line{syntax:'<color>';inherits:true;initial-value:rgba(4,40,61,.28)}
 @property --inv{syntax:'<color>';inherits:true;initial-value:#effbff}
-@property --hero{syntax:'<color>';inherits:true;initial-value:#04283d}
-@property --heroDim{syntax:'<color>';inherits:true;initial-value:#0a4560}
-@property --shadow{syntax:'<color>';inherits:true;initial-value:rgba(255,255,255,.6)}
-:root{color-scheme:dark;--ink:#04283d;--dim:#164a63;--glow:#006a8c;--glass:rgba(255,255,255,.72);--line:rgba(4,40,61,.28);--inv:#effbff;--hero:#04283d;--heroDim:#0a4560;--shadow:rgba(255,255,255,.6);transition:--ink 3s,--dim 3s,--glow 3s,--glass 3s,--line 3s,--inv 3s,--hero 3s,--heroDim 3s,--shadow 3s}
+@property --hero{syntax:'<color>';inherits:true;initial-value:#021a29}
+@property --heroDim{syntax:'<color>';inherits:true;initial-value:#04283d}
+@property --shadow{syntax:'<color>';inherits:true;initial-value:rgba(255,255,255,.92)}
+:root{color-scheme:dark;--ink:#04283d;--dim:#164a63;--glow:#006a8c;--glass:rgba(255,255,255,.88);--line:rgba(4,40,61,.28);--inv:#effbff;--hero:#021a29;--heroDim:#04283d;--shadow:rgba(255,255,255,.92);transition:--ink 3s,--dim 3s,--glow 3s,--glass 3s,--line 3s,--inv 3s,--hero 3s,--heroDim 3s,--shadow 3s}
 html{scroll-behavior:smooth;background:#031528}
 body{margin:0;overflow-x:hidden}
 @keyframes blink{50%{opacity:0}}
@@ -302,11 +302,11 @@ const h=React.createElement,{useState,useEffect,useRef}=React;
 const DEEP_M=109;
 /* UI palettes per weather: bright skies get dark ink on light glass, dim skies get light ink on dark glass */
 const WEATHER={
-  sunny:{label:'Sunny',vars:{ink:'#04283d',dim:'#164a63',glow:'#006a8c',glass:'rgba(255,255,255,.72)',line:'rgba(4,40,61,.28)',inv:'#effbff',hero:'#04283d',heroDim:'#0a4560',shadow:'rgba(255,255,255,.6)'}},
-  sunrise:{label:'Sunrise',vars:{ink:'#3a1224',dim:'#5c2a3c',glow:'#a8264f',glass:'rgba(255,244,234,.74)',line:'rgba(58,18,36,.28)',inv:'#fff4ea',hero:'#3a1224',heroDim:'#5c2a3c',shadow:'rgba(255,238,224,.6)'}},
-  sunset:{label:'Sunset',vars:{ink:'#fff3e6',dim:'#ffd9bd',glow:'#ffb347',glass:'rgba(34,10,48,.7)',line:'rgba(255,220,190,.3)',inv:'#2a0c3a',hero:'#fff3e6',heroDim:'#ffe3cc',shadow:'rgba(30,5,40,.8)'}},
-  night:{label:'Night',vars:{ink:'#ecf5ff',dim:'#bdd3f2',glow:'#7fe9ff',glass:'rgba(3,10,32,.74)',line:'rgba(170,200,255,.3)',inv:'#031030',hero:'#ecf5ff',heroDim:'#c9dcf5',shadow:'rgba(0,5,25,.8)'}},
-  rain:{label:'Rain',vars:{ink:'#f0f8f7',dim:'#c9dedc',glow:'#8fffd9',glass:'rgba(14,32,40,.76)',line:'rgba(200,235,235,.3)',inv:'#0e2028',hero:'#f0f8f7',heroDim:'#d6e8e6',shadow:'rgba(5,20,28,.8)'}}
+  sunny:{label:'Sunny',vars:{ink:'#04283d',dim:'#164a63',glow:'#006a8c',glass:'rgba(255,255,255,.88)',line:'rgba(4,40,61,.28)',inv:'#effbff',hero:'#021a29',heroDim:'#04283d',shadow:'rgba(255,255,255,.92)'}},
+  sunrise:{label:'Sunrise',vars:{ink:'#3a1224',dim:'#5c2a3c',glow:'#a8264f',glass:'rgba(255,244,234,.88)',line:'rgba(58,18,36,.28)',inv:'#fff4ea',hero:'#2a0b19',heroDim:'#3f1626',shadow:'rgba(255,238,224,.92)'}},
+  sunset:{label:'Sunset',vars:{ink:'#fff3e6',dim:'#ffd9bd',glow:'#ffb347',glass:'rgba(34,10,48,.86)',line:'rgba(255,220,190,.3)',inv:'#2a0c3a',hero:'#fff3e6',heroDim:'#ffe3cc',shadow:'rgba(24,4,34,.95)'}},
+  night:{label:'Night',vars:{ink:'#ecf5ff',dim:'#bdd3f2',glow:'#7fe9ff',glass:'rgba(3,10,32,.88)',line:'rgba(170,200,255,.3)',inv:'#031030',hero:'#ffffff',heroDim:'#ffffff',shadow:'rgba(0,4,22,.95)'}},
+  rain:{label:'Rain',vars:{ink:'#f0f8f7',dim:'#c9dedc',glow:'#8fffd9',glass:'rgba(14,32,40,.88)',line:'rgba(200,235,235,.3)',inv:'#0e2028',hero:'#03141c',heroDim:'#082230',shadow:'rgba(240,250,250,.92)'}}
 };
 const ORDER=Object.keys(WEATHER);
 const SECTIONS=[
@@ -382,7 +382,7 @@ function Typewriter({words}){
     },!t.del&&t.n===full.length?1600:t.del?30:70);
     return()=>clearTimeout(id);
   },[t]);
-  return h('p',{className:'mt-5 font-display text-lg font-semibold text-hero [text-shadow:0_1px_14px_var(--shadow)]'},'> ',words[t.w].slice(0,t.n),h('i',{className:'ml-1 inline-block h-4 w-2 bg-hero align-[-2px] [animation:blink_1s_steps(2)_infinite]'}));
+  return h('p',{className:'mt-5 font-display text-lg font-semibold text-hero [text-shadow:0_1px_2px_var(--shadow),0_0_10px_var(--shadow),0_0_24px_var(--shadow)]'},'> ',words[t.w].slice(0,t.n),h('i',{className:'ml-1 inline-block h-4 w-2 bg-hero align-[-2px] [animation:blink_1s_steps(2)_infinite]'}));
 }
 /* chrome: nav, depth gauge, weather chip */
 function Chrome({weather,onWeather,onSettings}){
@@ -411,12 +411,12 @@ function Hero({ready}){
   const fade=(d,x='')=>({style:{transitionDelay:d+'ms'},className:`transition-all duration-1000 ${on?'translate-y-0 opacity-100':'translate-y-6 opacity-0'} ${x}`});
   return h('section',{id:'home',className:'relative flex min-h-[100svh] items-center px-[6vw] md:px-[9vw]'},
     h('div',null,
-      h('h1',{'aria-label':'Ming Thong',className:'font-display text-[clamp(60px,16vw,160px)] font-extrabold leading-[.9] tracking-[-.01em] text-hero [text-shadow:0_3px_30px_var(--shadow)]'},word('Ming',200),word('Thong',600)),
-      h('p',fade(1400,'mt-6 max-w-[40ch] text-lg font-medium leading-relaxed text-heroDim [text-shadow:0_1px_14px_var(--shadow)] md:text-2xl'),'UX/UI designer and experience strategist. I design digital experiences that feel intuitive, engaging, and worth remembering.'),
+      h('h1',{'aria-label':'Ming Thong',className:'font-display text-[clamp(60px,16vw,160px)] font-extrabold leading-[.9] tracking-[-.01em] text-hero [text-shadow:0_2px_3px_var(--shadow),0_0_14px_var(--shadow),0_0_36px_var(--shadow)]'},word('Ming',200),word('Thong',600)),
+      h('p',fade(1400,'mt-6 max-w-[40ch] text-lg font-medium leading-relaxed text-heroDim [text-shadow:0_1px_2px_var(--shadow),0_0_10px_var(--shadow),0_0_24px_var(--shadow)] md:text-2xl'),'UX/UI designer and experience strategist. I design digital experiences that feel intuitive, engaging, and worth remembering.'),
       h('div',fade(1700),h(Typewriter,{words:['building for the web','designing for people','optimizing every frame']})),
       h('div',fade(2000,'mt-6 flex flex-wrap gap-2.5'),
         [['</>','Develop'],['◇','Design'],['⚡','Optimize'],['☺','Accessible']].map(([i,l])=>h('span',{key:l,className:`rounded-xl px-3.5 py-2 text-[14px] font-semibold text-ink ${chip}`},h('b',{className:'mr-2 font-bold text-glow'},i),l)))),
-    h('p',fade(2400,'absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 text-center text-[14px] font-semibold text-hero [text-shadow:0_1px_12px_var(--shadow)]'),'Scroll to dive · click the water to make bubbles'));
+    h('p',fade(2400,'absolute bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-1/2 -translate-x-1/2 text-center text-[14px] font-semibold text-hero [text-shadow:0_1px_2px_var(--shadow),0_0_10px_var(--shadow),0_0_24px_var(--shadow)]'),'Scroll to dive · click the water to make bubbles'));
 }
 function Card({label,grad}){
   const [t,setT]=useState('');
@@ -462,7 +462,7 @@ function Footer(){
       h('div',{className:'grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]'},
         h('div',null,
           h('div',{className:'font-display text-3xl font-extrabold leading-none text-ink'},'Ming Thong'),
-          h('p',{className:'mt-3 max-w-[34ch] text-[16px] font-medium leading-relaxed text-dim'},'UX/UI designer and experience strategist based in Singapore.')),
+          h('p',{className:'mt-3 max-w-[34ch] text-[16px] font-medium leading-relaxed text-dim'},'UX/UI designer and Experience Strategist based in Singapore.')),
         h('nav',{'aria-label':'Footer'},
           h('div',{className:'mb-3 text-[14px] font-bold text-glow'},'Explore'),
           h('ul',{className:'space-y-2'},SECTIONS.map(s=>h('li',{key:s.id},h('button',{onClick:()=>go(s.id),className:link},s.label))))),
