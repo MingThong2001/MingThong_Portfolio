@@ -1,0 +1,108 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Portfolio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#fff;--ink:#231416;--mut:#7A6064;--line:#EEEEEE;--soft:#F6F6F6;--pri:#D81E3A;--on:#fff;--scrim:rgba(20,10,11,.92);color-scheme:light}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg)}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;padding-top:env(safe-area-inset-top,0)}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:40px 24px 64px}
+.eyebrow{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;margin:0 0 12px}
+h1{font-size:clamp(36px,7vw,64px);font-weight:800;letter-spacing:-.03em;line-height:1.02;margin:0 0 16px}
+.lead{color:var(--mut);font-size:17px;line-height:1.55;max-width:560px;margin:0 0 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:28px 20px}
+.card{text-align:left;display:block;width:100%;animation:up .5s cubic-bezier(.2,.8,.2,1) both}
+.thumb{aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:var(--soft);position:relative}
+.thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.card:hover .thumb img,.card:hover .thumb video,.card:focus-visible .thumb img{transform:scale(1.05)}
+.card:focus-visible{outline:2px solid var(--pri);outline-offset:4px;border-radius:16px}
+.card .t{font-weight:800;font-size:18px;margin:14px 0 2px}.card .s{color:var(--mut);font-size:14px}
+.tag{position:absolute;left:12px;top:12px;background:var(--bg);color:var(--ink);font-size:12px;font-weight:600;padding:5px 10px;border-radius:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:-8px 0 32px}.wm{font-size:15px;font-weight:800;text-decoration:none;color:var(--ink)}.wm b{color:var(--pri)}.pill{min-height:44px;padding:0 20px;border-radius:22px;border:1.5px solid var(--pri);color:var(--pri);font-weight:600;font-size:14px;display:inline-flex;align-items:center;text-decoration:none}.pill:active{transform:scale(.95)}.back{min-height:44px;padding:0 4px;font-weight:600;color:var(--pri);margin:-8px 0 24px;display:inline-flex;align-items:center;gap:6px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:20px;padding:20px 0;margin:28px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.meta b{display:block;font-size:12px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.meta span{font-weight:600;font-size:15px}
+.cols{display:grid;grid-template-columns:1fr;gap:32px}
+@media(min-width:760px){.cols{grid-template-columns:1.6fr 1fr;gap:56px}}
+.cols p{line-height:1.7;font-size:16px;margin:0 0 16px}
+h2{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}.chip{padding:8px 14px;border-radius:20px;background:var(--soft);font-weight:600;font-size:13px}
+.link{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:22px;background:var(--pri);color:var(--on);font-weight:600;font-size:14px;text-decoration:none}
+.media{display:grid;gap:16px;margin-top:40px}
+@media(min-width:760px){.media{grid-template-columns:1fr 1fr}.media .full{grid-column:1/-1}}
+.m{border-radius:16px;overflow:hidden;background:var(--soft);position:relative;cursor:zoom-in;padding:0}
+.m img,.m video{width:100%;display:block}.m video{cursor:default}
+.cap{padding:10px 4px 0;color:var(--mut);font-size:13px}
+.lb{position:fixed;inset:0;background:var(--scrim);z-index:10;display:flex;align-items:center;justify-content:center;padding:24px;animation:fade .2s;cursor:zoom-out}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
+.x{position:absolute;top:calc(12px + env(safe-area-inset-top,0));right:16px;color:#fff;font-size:32px;min-width:44px;min-height:44px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+/* ============================================================
+   EDIT HERE. Add / remove projects. Each project has:
+   id (no spaces), title, subtitle, cover (image/gif/video), details, media[]
+   MEDIA TYPES:  {type:"image", src:"img/shot1.jpg", caption:"..."}
+                 {type:"gif",   src:"img/demo.gif"}
+                 {type:"video", src:"video/walkthrough.mp4", poster:"img/poster.jpg"}
+   Add  full:true  to make an item span the full width.
+   ============================================================ */
+const ph=(c,t)=>"data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 600'><rect width='800' height='600' fill='${c}'/><text x='400' y='310' font-family='sans-serif' font-size='32' font-weight='700' fill='white' text-anchor='middle' opacity='.85'>${t}</text></svg>`);
+const HOME_PAGE="index.html"; /* your core portfolio page */
+const OWNER={name:"Your Name",intro:"Selected work. Tap a project to see the full story, process and media."};
+
+const PROJECTS=[
+ {id:"SingHealth Redesigned",title:"SingHealth Redesigned",subtitle:"Healthcare App UX/UI Redesign",tag:"App design",
+  cover:{type:"image",src:ph("#D81E3A","Cover image")},
+  details:{Year:"2026",Role:"Product designer",Client:"ONEservice",Platform:"Mobile web"},
+  summary:["A points, badges and rewards app that turns reporting litter, verifying fixes and joining gotong-royong sessions into a game for residents.","Replace this text with your own write-up: the problem, your approach, and what changed as a result."],
+  tools:["Figma","React","Prototyping"],link:{label:"Open prototype",href:"index.html"},
+  media:[{type:"image",src:ph("#231416","Hero screenshot"),caption:"Home quest screen",full:true},
+         {type:"image",src:ph("#F2A93B","Badges")},{type:"image",src:ph("#7A6064","Rewards")}
+         /* ,{type:"video",src:"video/walkthrough.mp4",poster:"img/poster.jpg",caption:"Walkthrough",full:true} */
+         /* ,{type:"gif",src:"img/confetti.gif",caption:"Badge celebration"} */]},
+ {id:"project-two",title:"Project Two",subtitle:"Short one-line description",tag:"Branding",
+  cover:{type:"image",src:ph("#3B6FD8","Cover image")},
+  details:{Year:"2025",Role:"Your role",Client:"Client name"},
+  summary:["Describe this project here."],tools:["Tool A","Tool B"],
+  media:[{type:"image",src:ph("#3B6FD8","Image 1"),full:true},{type:"image",src:ph("#2A9D8F","Image 2")},{type:"image",src:ph("#E76F51","Image 3")}]},
+ {id:"project-three",title:"Project Three",subtitle:"Short one-line description",tag:"Motion",
+  cover:{type:"image",src:ph("#2A9D8F","Cover image")},
+  details:{Year:"2025",Role:"Your role"},
+  summary:["Describe this project here."],tools:["Tool A"],
+  media:[{type:"image",src:ph("#2A9D8F","Image 1"),full:true}]}
+];
+/* ============================================================ */
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tag=(m,cls)=>m.type==="video"
+ ?`<video ${cls?`class="${cls}" `:""}src="${esc(m.src)}" ${m.poster?`poster="${esc(m.poster)}" `:""}muted loop playsinline preload="metadata" ${cls==="cv"?"autoplay":"controls"}></video>`
+ :`<img src="${esc(m.src)}" alt="${esc(m.caption||"")}" loading="lazy">`;
+function home(){
+ document.title="Portfolio";
+ app.innerHTML=`<div class="top"><a class="wm" href="${HOME_PAGE}"><b>ONE</b>service</a><a class="pill" href="${HOME_PAGE}">← Back to app</a></div><p class="eyebrow">Portfolio</p><h1>${esc(OWNER.name)}</h1><p class="lead">${esc(OWNER.intro)}</p>
+ <div class="grid">${PROJECTS.map((p,i)=>`<button class="card" style="animation-delay:${i*70}ms" data-id="${esc(p.id)}"><div class="thumb">${tag(p.cover,"cv")}${p.tag?`<span class="tag">${esc(p.tag)}</span>`:""}</div><div class="t">${esc(p.title)}</div><div class="s">${esc(p.subtitle)}</div></button>`).join("")}</div>`;
+ app.querySelectorAll(".card").forEach(b=>b.onclick=()=>{location.hash=b.dataset.id});
+ window.scrollTo(0,0);
+}
+function detail(p){
+ document.title=p.title+" · Portfolio";
+ const d=Object.entries(p.details||{});
+ app.innerHTML=`<div class="top"><button class="back" id="bk" style="margin:0">← All projects</button><a class="pill" href="${HOME_PAGE}">← Back to app</a></div>
+ <p class="eyebrow">${esc(p.tag||"Project")}</p><h1>${esc(p.title)}</h1><p class="lead" style="margin-bottom:0">${esc(p.subtitle)}</p>
+ ${d.length?`<div class="meta">${d.map(([k,v])=>`<div><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("")}</div>`:""}
+ <div class="cols"><div>${(p.summary||[]).map(t=>`<p>${esc(t)}</p>`).join("")}</div>
+ <div>${p.tools?.length?`<h2>Tools</h2><div class="chips">${p.tools.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}${p.link?`<a class="link" href="${esc(p.link.href)}">${esc(p.link.label)}</a>`:""}</div></div>
+ <div class="media">${(p.media||[]).map(m=>`<figure style="margin:0" class="${m.full?"full":""}"><div class="m" ${m.type==="video"?"":'data-zoom="1"'}>${tag(m)}</div>${m.caption?`<figcaption class="cap">${esc(m.caption)}</figcaption>`:""}</figure>`).join("")}</div>`;
+ document.getElementById("bk").onclick=()=>{location.hash=""};
+ app.querySelectorAll("[data-zoom] img").forEach(im=>im.parentNode.onclick=()=>zoom(im.src));
+ window.scrollTo(0,0);
+}
+function zoom(src){
+ const l=document.createElement("div");l.className="lb";l.innerHTML=`<button class="x" aria-label="Close">×</button><img src="${esc(src)}" alt="">`;
+ const c=()=>{l.remove();document.removeEventListener("keydown",k)},k=e=>{if(e.key==="Escape")c()};
+ l.onclick=c;document.addEventListener("keydown",k);document.body.appendChild(l);
+}
+function route(){const id=decodeURIComponent(location.hash.slice(1)),p=PROJECTS.find(x=>x.id===id);p?detail(p):home()}
+addEventListener("hashchange",route);route();
+</script></body></html>
