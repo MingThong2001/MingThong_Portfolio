@@ -440,30 +440,83 @@ function Hero({ready}){
   'SCROLL TO EXPLORE  ·  CLICK WATER FOR BUBBLES'
 ));
 }
-function Card({label,grad}){
-  const [t,setT]=useState('');
-  const move=e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;setT(`perspective(600px) rotateX(${-y*14}deg) rotateY(${x*14}deg) scale(1.03)`)};
-  return h('div',{onMouseMove:move,onMouseLeave:()=>setT(''),style:{transform:t},className:`flex h-24 items-end rounded-2xl border border-line bg-gradient-to-br ${grad} p-3.5 text-base font-bold text-white [text-shadow:0_1px_6px_rgba(0,0,0,.4)] transition-transform duration-200`},label);
-}
-const fade='linear-gradient(to right,transparent,#000 14%,#000 86%,transparent),linear-gradient(to bottom,transparent,#000 16%,#000 84%,transparent)';
-const scrim={background:'var(--glass)',backdropFilter:'blur(16px) saturate(1.4)',WebkitBackdropFilter:'blur(16px) saturate(1.4)',WebkitMaskImage:fade,maskImage:fade,WebkitMaskComposite:'source-in',maskComposite:'intersect'};
+const noMotion=()=>document.documentElement.dataset.motion==='off'||matchMedia('(prefers-reduced-motion:reduce)').matches;
 const bubble=i=>({background:'radial-gradient(circle at 30% 26%,rgba(255,255,255,.9),rgba(255,255,255,.15) 36%,transparent 70%),color-mix(in srgb,var(--glow) 20%,transparent)',animation:`bob ${5+i%3}s ease-in-out ${i*.45}s infinite`});
+/* ---------- premium section layout: one glass slab per section, editorial header, interactive cards ---------- */
+const slabStyle={background:'linear-gradient(135deg,color-mix(in srgb,var(--glass) 92%,transparent),color-mix(in srgb,var(--glass) 72%,transparent))',backdropFilter:'blur(28px) saturate(1.6)',WebkitBackdropFilter:'blur(28px) saturate(1.6)',boxShadow:'0 50px 120px -30px rgba(0,10,25,.6),inset 0 1px 0 rgba(255,255,255,.2)'};
+const edgeStyle=bg=>({padding:1,background:bg,WebkitMask:'linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)',WebkitMaskComposite:'xor',maskComposite:'exclude'});
+const Edge=({bg,className=''})=>h('span',{'aria-hidden':true,className:`pointer-events-none absolute inset-0 rounded-[inherit] ${className}`,style:edgeStyle(bg)});
+function Rise({children,className='',delay=0}){
+  const ref=useRef(null),[seen,setSeen]=useState(false);
+  useEffect(()=>{const io=new IntersectionObserver(([e])=>{if(e.isIntersecting){setSeen(true);io.disconnect()}},{threshold:.12});io.observe(ref.current);return()=>io.disconnect()},[]);
+  return h('div',{ref,style:{transitionDelay:delay+'ms'},className:`transition-all duration-[900ms] ease-[cubic-bezier(.2,.8,.2,1)] ${seen?'translate-y-0 opacity-100':'translate-y-10 opacity-0'} ${className}`},children);
+}
+function usePointer(tilt){
+  const ref=useRef(null);
+  const move=e=>{const el=ref.current;if(!el)return;const r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,fx=x/r.width-.5,fy=y/r.height-.5;
+    el.style.setProperty('--mx',x+'px');el.style.setProperty('--my',y+'px');el.style.setProperty('--px',fx*2);el.style.setProperty('--py',fy*2);
+    if(tilt&&!noMotion())el.style.transform=`perspective(900px) rotateX(${-fy*tilt}deg) rotateY(${fx*tilt}deg) translateY(-5px)`};
+  const leave=()=>{const el=ref.current;if(!el)return;el.style.transform='';el.style.setProperty('--px',0);el.style.setProperty('--py',0)};
+  return{ref,onMouseMove:move,onMouseLeave:leave};
+}
+const Float=({children,className=''})=>h('div',{className,style:{transform:'translate(calc(var(--px,0)*10px),calc(var(--py,0)*10px))',transition:'transform .25s ease-out'}},children);
+const focusRing='focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink';
+/* glass card: cursor spotlight, light-tracing border, 3D tilt */
+function Tile({href,ext,className='',children}){
+  const ptr=usePointer(7);
+  const props={...ptr,className:`group relative block h-full overflow-hidden rounded-[22px] transition-[transform,box-shadow] duration-300 ease-out hover:shadow-[0_34px_70px_-24px_rgba(0,10,25,.6)] ${focusRing} ${className}`,style:{background:'color-mix(in srgb,var(--ink) 5%,transparent)'}};
+  if(href){props.href=href;if(ext){props.target='_blank';props.rel='noopener noreferrer'}}
+  return h(href?'a':'div',props,
+    h(Edge,{bg:'linear-gradient(var(--line),var(--line))'}),
+    h(Edge,{bg:'radial-gradient(240px circle at var(--mx,50%) var(--my,50%),var(--glow),transparent 65%)',className:'opacity-0 transition-opacity duration-300 group-hover:opacity-100'}),
+    h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100',style:{background:'radial-gradient(380px circle at var(--mx,50%) var(--my,50%),color-mix(in srgb,var(--glow) 18%,transparent),transparent 70%)'}}),
+    h('div',{className:'relative h-full'},children));
+}
+const Arrow=({className=''})=>h('span',{'aria-hidden':true,className:`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-lg transition-all duration-300 -rotate-45 group-hover:rotate-0 ${className}`},'→');
+/* project card: tall gradient panel that expands when hovered */
+function Project({n,label,grad,href,onAct}){
+  const ptr=usePointer(0);
+  return h('a',{...ptr,href,onMouseEnter:onAct,onFocus:onAct,className:`group relative flex h-full min-h-[250px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br p-6 text-white md:min-h-[470px] md:p-7 ${grad} ${focusRing}`},
+    h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-white opacity-30 blur-3xl transition-transform duration-700 group-hover:scale-125 [animation:bob_7s_ease-in-out_infinite]'}),
+    h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-black opacity-30 blur-3xl [animation:bob_9s_ease-in-out_infinite]'}),
+    h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent'}),
+    h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100',style:{background:'radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 65%)'}}),
+    h(Edge,{bg:'linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))'}),
+    h('div',{className:'relative flex items-start justify-between'},
+      h('span',{className:'text-[13px] font-bold tracking-[.22em] opacity-90'},String(n+1).padStart(2,'0')),
+      h(Arrow,{className:'border-white/50 bg-white/10 backdrop-blur group-hover:bg-white group-hover:text-black'})),
+    h('div',{className:'relative'},
+      h('div',{className:'text-[clamp(28px,3.2vw,44px)] font-extrabold leading-none tracking-[-.02em] [text-shadow:0_2px_14px_rgba(0,0,0,.35)]'},label),
+      h('div',{className:'mt-4 flex items-center gap-3 text-[14px] font-semibold opacity-90 transition-all duration-500 md:translate-y-3 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100'},h('span',{className:'h-px w-10 bg-white'}),'View project')));
+}
 function Panel({s}){
-  const from=s.side==='right'?'translate-x-16':'-translate-x-16';
-  return h('section',{id:s.id,className:`flex min-h-[100svh] items-center px-[6vw] md:px-[9vw] ${s.side==='right'?'md:justify-end':''}`},
-    h(Reveal,{from,className:`relative w-full ${s.wide?'max-w-[860px]':'max-w-[520px]'}`},
-      h('div',{'aria-hidden':true,className:'pointer-events-none absolute -inset-x-8 -inset-y-14 md:-inset-x-14',style:scrim}),
-      h('div',{className:'relative'},
-        h('div',{className:'mb-3 flex items-center gap-2.5 text-[14px] font-bold uppercase tracking-[.14em] text-glow'},
-          h('span',{className:'relative flex h-2.5 w-2.5'},h('span',{className:'absolute inline-flex h-full w-full animate-ping rounded-full bg-glow opacity-60'}),h('span',{className:'relative inline-flex h-2.5 w-2.5 rounded-full bg-glow'})),s.zone),
-        h('h2',{className:'font-display text-[clamp(40px,5.6vw,62px)] font-extrabold leading-none text-ink'},s.label),
-        h('div',{className:'mb-5 mt-4 h-0.5 w-14 rounded bg-glow'}),
-        (s.body||[]).map((b,i)=>h('p',{key:i,className:'text-[18px] font-medium leading-relaxed text-dim'},b)),
-        s.list&&h('ul',{className:'mt-3 list-disc space-y-1 pl-5 text-[17px] font-medium leading-relaxed text-dim marker:text-glow'},s.list.map(x=>h('li',{key:x},x))),
-        s.chips&&h('div',{className:s.wide?'mt-7 grid gap-x-10 gap-y-5 md:grid-cols-2':'mt-6 grid gap-4'},s.chips.map(([i,l,sub],n)=>h('div',{key:l,className:'flex items-center gap-4'},h('div',{className:'flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line text-2xl shadow-[0_6px_18px_rgba(0,10,25,.18)]',style:bubble(n)},i),h('div',null,h('div',{className:'text-[17px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-0.5 text-[14px] font-medium leading-snug text-dim'},sub))))),
-        s.cards&&h('div',{className:'mt-5 grid gap-3 sm:grid-cols-3 md:grid-cols-1'},s.cards.map(([l,g])=>h(Card,{key:l,label:l,grad:g}))),
-        s.href&&h('a',{href:s.href,className:'mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03]'},'View full portfolio →'),
-        s.social&&h('div',{className:'mt-6 flex flex-wrap gap-2.5'},s.social.map(([l,u])=>h('a',{key:l,href:u,target:'_blank',rel:'noopener noreferrer',className:'rounded-full border border-line px-5 py-2.5 text-[15px] font-bold text-ink transition hover:bg-ink hover:text-inv'},l))))));
+  const idx=String(SECTIONS.indexOf(s)).padStart(2,'0'),items=s.chips||s.cards||s.social,[act,setAct]=useState(null);
+  const eyebrow=h('div',{className:'flex items-center gap-3 text-[12px] font-bold uppercase tracking-[.18em] text-glow'},
+    h('span',null,idx),h('span',{'aria-hidden':true,className:'h-px w-10 bg-glow opacity-60'}),
+    h('span',{className:'relative flex h-2 w-2'},h('span',{className:'absolute inline-flex h-full w-full animate-ping rounded-full bg-glow opacity-60'}),h('span',{className:'relative inline-flex h-2 w-2 rounded-full bg-glow'})),s.zone);
+  const title=h('h2',{className:'mt-5 bg-gradient-to-br from-ink from-45% to-glow bg-clip-text pb-2 font-display text-[clamp(52px,8vw,104px)] font-extrabold leading-[.95] tracking-[-.03em] text-transparent'},s.label);
+  const copy=h('div',null,
+    (s.body||[]).map((b,i)=>h('p',{key:i,className:'max-w-[46ch] text-[17px] font-medium leading-relaxed text-dim md:text-[18px]'},b)),
+    s.list&&h('ul',{className:'mt-3 list-disc space-y-1 pl-5 text-[17px] font-medium text-dim marker:text-glow'},s.list.map(x=>h('li',{key:x},x))),
+    s.href&&h('a',{href:s.href,className:`mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03] ${focusRing}`},'View full portfolio',h('span',{'aria-hidden':true},'→')),
+    !items&&h('span',{className:'mt-6 inline-flex rounded-full border border-line px-4 py-1.5 text-[12px] font-bold uppercase tracking-[.16em] text-glow'},'Coming soon'));
+  const card=(it,n)=>{
+    if(s.cards){const [l,g]=it;return h(Project,{n,label:l,grad:g,href:s.href,onAct:()=>setAct(n)})}
+    if(s.chips){const [i,l,sub]=it;return s.wide
+      ?h(Tile,{className:'p-5'},h('span',{className:'absolute right-1 top-0 text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0')),h('div',{className:'flex items-center gap-4'},h(Float,null,h('div',{className:'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line text-2xl',style:bubble(n)},i)),h('div',null,h('div',{className:'text-[17px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[14px] font-medium leading-snug text-dim'},sub))))
+      :h(Tile,{className:'p-7'},h('div',{className:'flex items-start justify-between'},h(Float,null,h('div',{className:'flex h-16 w-16 items-center justify-center rounded-full border border-line text-3xl',style:bubble(n)},i)),h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'))),h('div',{className:'mt-10 text-[24px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[15px] font-medium text-dim'},sub))}
+    const [l,u]=it;return h(Tile,{href:u,ext:true,className:'p-7'},h('div',{className:'flex min-h-[140px] flex-col justify-between'},h('div',{className:'flex items-start justify-between'},h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0')),h(Arrow,{className:'border-line text-ink group-hover:bg-ink group-hover:text-inv'})),h('div',null,h('div',{className:'text-[24px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[14px] font-medium text-dim'},u.replace(/^https?:\/\//,'')))),h('span',{className:'sr-only'},'(opens in a new tab)'))};
+  const grid=items&&(s.cards
+    ?h('div',{onMouseLeave:()=>setAct(null),className:'mt-12 grid gap-4 md:[grid-template-columns:var(--cols)] md:transition-[grid-template-columns] md:duration-700 md:ease-[cubic-bezier(.2,.8,.2,1)]',style:{'--cols':items.map((_,k)=>act===k?'1.9fr':'1fr').join(' ')}},items.map((it,n)=>h(Rise,{key:it[0],delay:n*110,className:'h-full'},card(it,n))))
+    :h('div',{className:`mt-12 grid gap-4 ${s.wide?'sm:grid-cols-2 md:grid-cols-3':'md:grid-cols-3'}`},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:(n%3)*110,className:'h-full'},card(it,n)))));
+  return h('section',{id:s.id,className:`flex min-h-[100svh] items-center px-[6vw] py-24 md:px-[9vw] ${!items&&s.side==='right'?'md:justify-end':''}`},
+    h(Rise,{className:`w-full ${items?'mx-auto max-w-[1180px]':'max-w-[640px]'}`},
+      h('div',{className:'relative overflow-hidden rounded-[32px] p-6 md:p-12',style:slabStyle},
+        h(Edge,{bg:'linear-gradient(135deg,var(--line),transparent 38%,transparent 62%,var(--line))'}),
+        h('span',{'aria-hidden':true,className:'pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-glow opacity-25 blur-3xl'}),
+        h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-2 -top-6 select-none font-display text-[clamp(150px,20vw,280px)] font-extrabold leading-none text-ink opacity-[.06]'},idx),
+        h('div',{className:`relative grid gap-6 ${items?'md:grid-cols-[1.15fr_.85fr] md:items-end md:gap-12':''}`},h('div',null,eyebrow,title),copy),
+        grid&&h('div',{className:'relative'},grid))));
 }
 function Slider({label,hint,value,onChange,onGrab}){
   return h('label',{className:'mt-5 block'},
