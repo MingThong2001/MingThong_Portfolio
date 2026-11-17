@@ -318,7 +318,7 @@ const SECTIONS=[
 ],
    chips:[['📍','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
   {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
-   body:['Three recent explorations. Swap these cards for your own case studies.'],
+   body:['A glimpse into my design process, creative thinking and problem-solving.'],
    cards:[['Project 1','from-[#12457a] to-[#5b46c9]'],['Project 2','from-[#0b6a76] to-[#2fd0b0]'],['Project 3','from-[#6b2f66] to-[#ff7ad9]']]},
   {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
    wide:true,
@@ -492,15 +492,37 @@ function Project({n,label,grad,href,onAct}){
 }
 /* About / Skills / Game: one two-column layout, intro on the left, content on the right */
 function WideLayout({s,idx,eyebrow}){
-  const items=s.chips||[],odd=items.length%2===1,isSkills=!!s.wide;
-  const num=n=>h('span',{className:'absolute right-4 top-3 text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'));
-  const row=(it,n)=>{const [i,l,sub]=it;return h(Tile,{className:isSkills?'p-4':'p-6'},num(n),h('div',{className:'flex items-center gap-4 pr-6'},h(Float,null,h('div',{className:'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line text-2xl',style:bubble(n)},i)),h('div',{className:'min-w-0'},h('div',{className:'text-[17px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[14px] font-medium leading-snug text-dim'},sub))))};
-  const right=items.length
-    ?h('div',{className:`grid h-full auto-rows-fr gap-3 ${isSkills?'sm:grid-cols-2':''}`},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*80,className:`h-full ${isSkills&&odd&&n===items.length-1?'sm:col-span-2':''}`},row(it,n))))
-    :h(Rise,{delay:120,className:'h-full'},h(Tile,{className:'p-7 md:p-8'},h('div',{className:'flex h-full flex-col justify-between gap-7'},
-        h('div',{className:'flex items-center justify-between'},h(Float,null,h('div',{className:'flex h-16 w-16 items-center justify-center rounded-full border border-line text-3xl',style:bubble(0)},'🎮')),h('span',{className:'rounded-full border border-line px-4 py-1.5 text-[12px] font-bold uppercase tracking-[.16em] text-glow'},'Coming soon')),
-        h('div',null,h('div',{className:'text-[26px] font-bold leading-tight text-ink'},'Level 01'),h('div',{className:'mt-1 text-[15px] font-medium text-dim'},'In development')),
-        h('div',{className:'h-2 overflow-hidden rounded-full',style:{background:'color-mix(in srgb,var(--ink) 10%,transparent)'}},h('div',{className:'h-full w-1/4 rounded-full bg-glow shadow-[0_0_12px_var(--glow)]'})))));
+  const items=s.chips||[],isSkills=!!s.wide;
+  const orb=(i,sz,n)=>h(Float,null,h('div',{className:'flex shrink-0 items-center justify-center rounded-full border border-line',style:{...bubble(n),width:sz,height:sz,fontSize:Math.round(sz*.46)}},i));
+  const tag=n=>h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'));
+  const glowOrb=h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-14 -right-14 h-48 w-48 rounded-full bg-glow opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-40'});
+  const about=(it,n)=>{const [i,l,sub]=it,big=n===0;
+    const txt=h('div',{className:'min-w-0'},h('div',{className:'text-[12px] font-bold uppercase tracking-[.18em] text-dim'},sub),h('div',{className:`mt-2 font-display font-extrabold leading-none tracking-[-.02em] text-ink ${big?'text-[clamp(38px,4.4vw,58px)]':'text-[clamp(26px,2.8vw,36px)]'}`},l));
+    return h(Tile,{className:big?'p-7 md:p-8':'p-6'},glowOrb,
+      big?h('div',{className:'relative flex items-center gap-6'},orb(i,92,n),txt,h('span',{className:'ml-auto self-start'},tag(n)))
+         :h('div',{className:'relative flex h-full min-h-[190px] flex-col justify-between gap-8'},h('div',{className:'flex items-start justify-between'},orb(i,64,n),tag(n)),txt));};
+  const spans=['md:col-span-4','md:col-span-2','md:col-span-2','md:col-span-2','md:col-span-2','md:col-span-3','md:col-span-3','md:col-span-3','md:col-span-3'];
+  const skill=(it,n)=>{const [i,l,sub]=it,big=n===0;
+    return h(Tile,{className:big?'p-6':'p-5'},big&&glowOrb,
+      h('div',{className:'relative flex h-full min-h-[118px] flex-col justify-between gap-5'},
+        h('div',{className:'flex items-start justify-between'},orb(i,big?56:44,n),tag(n)),
+        h('div',null,
+          h('div',{className:big?'text-[26px] font-extrabold leading-tight tracking-[-.02em] text-ink':'text-[17px] font-bold leading-tight text-ink'},l),
+          big?h('div',{className:'mt-3 flex flex-wrap gap-2'},sub.split(' · ').map(t=>h('span',{key:t,className:'rounded-full border border-line px-3 py-1 text-[12px] font-semibold text-dim'},t)))
+             :h('div',{className:'mt-1 text-[13px] font-medium leading-snug text-dim'},sub))));};
+  const lit={background:'var(--glow)',boxShadow:'0 0 10px var(--glow)'},dim={background:'rgba(255,255,255,.12)'};
+  const screen=h(Tile,{className:'p-3'},h('div',{className:'relative flex h-full min-h-[360px] flex-col justify-between overflow-hidden rounded-[16px] p-6 font-mono md:p-7',style:{background:'repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 4px),radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--glow) 30%,transparent),transparent 65%),rgba(2,10,24,.62)'}},
+      h('div',{className:'flex items-center justify-between text-[11px] font-bold tracking-[.2em] text-white'},h('span',{className:'opacity-70'},'PLAYER 1'),h('span',{className:'rounded-full border border-white/30 px-3 py-1 text-glow'},'COMING SOON')),
+      h('div',{className:'flex flex-col items-center gap-5 text-center'},orb('🎮',84,0),
+        h('div',{className:'text-[clamp(34px,4vw,54px)] font-extrabold leading-none tracking-[.12em] text-white',style:{textShadow:'0 0 28px var(--glow)'}},'LEVEL 01'),
+        h('div',{className:'animate-pulse text-[13px] font-bold tracking-[.4em] text-glow'},'PRESS START')),
+      h('div',null,h('div',{className:'flex gap-1.5'},Array.from({length:10},(_,k)=>h('span',{key:k,className:'h-2.5 flex-1 rounded-[3px]',style:k<3?lit:dim}))),
+        h('div',{className:'mt-3 flex justify-between text-[11px] font-bold tracking-[.2em] text-white opacity-70'},h('span',null,'LOADING'),h('span',null,'30%')))));
+  const right=!items.length
+    ?h(Rise,{delay:120,className:'h-full'},screen)
+    :isSkills
+      ?h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*70,className:`h-full ${spans[n]||'md:col-span-3'}`},skill(it,n))))
+      :h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*100,className:`h-full ${n===0?'sm:col-span-2':''}`},about(it,n))));
   return h('section',{id:s.id,className:'flex min-h-[100svh] items-center px-[5vw] py-16 md:px-[7vw]'},
     h(Rise,{className:'mx-auto w-full max-w-[1240px]'},
       h('div',{className:'relative overflow-hidden rounded-[40px] p-6 md:p-10',style:glassStyle},
@@ -514,7 +536,7 @@ function WideLayout({s,idx,eyebrow}){
             h('h2',{className:'mt-4 bg-gradient-to-br from-ink from-45% to-glow bg-clip-text pb-1 font-display text-[clamp(44px,6vw,80px)] font-extrabold leading-[.95] tracking-[-.03em] text-transparent'},s.label),
             h('div',{'aria-hidden':true,className:'mt-5 h-1 w-14 rounded-full bg-glow'}),
             (s.body||[]).map((b,i)=>h('p',{key:i,className:'mt-5 max-w-none text-[18px] font-medium leading-relaxed text-ink opacity-80 md:text-[20px]'},b)),
-            isSkills&&h('p',{className:'mt-6 text-[13px] font-bold uppercase tracking-[.18em] text-dim'},String(items.length).padStart(2,'0')+' disciplines')),
+            isSkills&&h('p',{className:'mt-6 text-[13px] font-bold uppercase tracking-[.18em] text-dim'},String(items.length).padStart(2,'0')+' The skills and practices behind the experiences I create.')),
           right))));
 }
 function Panel({s}){
