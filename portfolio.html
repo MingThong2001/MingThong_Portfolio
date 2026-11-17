@@ -150,7 +150,7 @@ const tag=(m,cls)=>m.type==="video"
  :`<img src="${esc(m.src)}" alt="${esc(m.caption||"")}" loading="lazy">`;
 function home(){
  document.title="Portfolio";
- app.innerHTML=`<div class="top"><a class="pill" href="${HOME_PAGE}">← Back to app</a></div><p class="eyebrow">Portfolio</p><h1>${esc(OWNER.name)}</h1><p class="lead">${esc(OWNER.intro)}</p>
+ app.innerHTML=`<div class="top"><a class="pill" href="${HOME_PAGE}">← Back to Home</a></div><p class="eyebrow">Portfolio</p><h1>${esc(OWNER.name)}</h1><p class="lead">${esc(OWNER.intro)}</p>
  <div class="grid">${PROJECTS.map((p,i)=>`<button class="card" style="animation-delay:${i*70}ms" data-id="${esc(p.id)}"><div class="thumb">${tag(p.cover,"cv")}${p.tag?`<span class="tag">${esc(p.tag)}</span>`:""}</div><div class="t">${esc(p.title)}</div><div class="s">${esc(p.subtitle)}</div></button>`).join("")}</div>`;
  app.querySelectorAll(".card").forEach(b=>{b.onclick=()=>{location.hash=b.dataset.id};tilt(b)});
  reveal();
