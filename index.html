@@ -319,7 +319,7 @@ const SECTIONS=[
    chips:[['📍','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
   {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
    body:['A glimpse into my design process, creative thinking and problem-solving.'],
-   cards:[['Project 1','from-[#12457a] to-[#5b46c9]'],['Project 2','from-[#0b6a76] to-[#2fd0b0]'],['Project 3','from-[#6b2f66] to-[#ff7ad9]']]},
+   cards:[['SingHealth','from-[#12457a] to-[#5b46c9]','/SingHealth/SingHealth%20Cover%20Page.png'],['Singapore BBQ','from-[#0b6a76] to-[#2fd0b0]','/SGBBQ/SGBBQ_CoverPage.png'],['Mental Health','from-[#6b2f66] to-[#ff7ad9]','/Graphic%20Novel/MentalHealth%20Coverpage.png']]},
   {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
    wide:true,
    chips:[
@@ -400,16 +400,26 @@ function Typewriter({words}){
   return h('p',{className:'mt-5 font-display text-lg font-semibold text-hero [text-shadow:0_1px_2px_var(--shadow),0_0_10px_var(--shadow),0_0_24px_var(--shadow)]'},'> ',words[t.w].slice(0,t.n),h('i',{className:'ml-1 inline-block h-4 w-2 bg-hero align-[-2px] [animation:blink_1s_steps(2)_infinite]'}));
 }
 /* chrome: nav, depth gauge, weather chip */
+const ico=(...d)=>h('svg',{viewBox:'0 0 24 24',width:20,height:20,fill:'none',stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round','aria-hidden':true},d.map((p,i)=>h('path',{key:i,d:p})));
+const NAV_ICONS={
+  home:ico('M3 11l9-8 9 8','M5 10v10h14V10','M10 20v-6h4v6'),
+  about:ico('M12 12a4 4 0 100-8 4 4 0 000 8z','M4 21c0-4 4-7 8-7s8 3 8 7'),
+  projects:ico('M4 4h7v7H4z','M13 4h7v7h-7z','M4 13h7v7H4z','M13 13h7v7h-7z'),
+  skills:ico('M13 2L4 14h7l-1 8 9-12h-7z'),
+  game:ico('M6 8h12a4 4 0 014 4v2a3 3 0 01-5.2 2L15 14H9l-1.8 2A3 3 0 012 14v-2a4 4 0 014-4z','M7 11v3','M5.5 12.5h3','M16 12h.01','M18 13.5h.01'),
+  contact:ico('M3 6h18v12H3z','M3 7l9 6 9-6')
+};
 function Chrome({weather,onWeather,onSettings}){
   const {p,active}=useDive(),[open,setOpen]=useState(false);
   const top=`calc(${p*100}% - ${p*12}px)`;
   return h(React.Fragment,null,
-    h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-between px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
-      h('a',{href:'#home',onClick:e=>{e.preventDefault();go('home')},className:`rounded-full px-4 py-1.5 font-display text-xl font-bold text-ink ${chip}`},'Ming Thong'),
-      h('nav',{'data-ui':1,className:`hidden gap-0.5 rounded-full p-1 md:flex ${chip}`},
-        SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>open_(s),className:`rounded-full px-4 py-2 text-[15px] font-semibold transition ${i===active?'bg-ink text-inv':'text-dim hover:text-ink'}`},s.label))),
+    h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-end px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
       h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:`flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full md:hidden ${chip}`},
         [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 rounded bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
+    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-5 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-1 rounded-[28px] p-2 shadow-[0_20px_50px_-20px_rgba(0,10,25,.45)] md:flex ${chip}`},
+      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>open_(s),'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex w-[68px] flex-col items-center gap-1 rounded-[20px] px-1 py-2.5 transition ${i===active?'bg-ink text-inv':'text-dim hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink'} ${focusRing}`},
+        NAV_ICONS[s.id],
+        h('span',{className:'text-[11px] font-semibold leading-none'},s.label)))),
     h('div',{'data-ui':1,className:`fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-glass backdrop-blur-3xl transition-all duration-500 md:hidden ${open?'opacity-100':'pointer-events-none opacity-0'}`},
       SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{setOpen(false);open_(s)},style:{transitionDelay:open?i*60+'ms':'0ms'},className:`font-display text-4xl font-bold transition-all duration-500 ${open?'translate-y-0':'translate-y-4'} ${i===active?'text-glow':'text-ink'}`},s.label))),
     h('div',{'aria-hidden':true,className:'pointer-events-none fixed right-6 top-1/2 z-40 hidden h-[44vh] w-0.5 -translate-y-1/2 rounded bg-line md:block'},
@@ -475,11 +485,12 @@ function Tile({href,ext,className='',children}){
 }
 const Arrow=({className=''})=>h('span',{'aria-hidden':true,className:`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-lg transition-all duration-300 -rotate-45 group-hover:rotate-0 ${className}`},'→');
 /* project card: tall gradient panel that expands when hovered */
-function Project({n,label,grad,href,onAct}){
+function Project({n,label,grad,img,href,onAct}){
   const ptr=usePointer(0);
   return h('a',{...ptr,href,onMouseEnter:onAct,onFocus:onAct,className:`group relative flex h-full min-h-[250px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br p-6 text-white md:min-h-[470px] md:p-7 ${grad} ${focusRing}`},
-    h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-white opacity-30 blur-3xl transition-transform duration-700 group-hover:scale-125 [animation:bob_7s_ease-in-out_infinite]'}),
-    h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-black opacity-30 blur-3xl [animation:bob_9s_ease-in-out_infinite]'}),
+    img&&h('img',{src:img,alt:'',loading:'lazy',onError:e=>{e.currentTarget.style.display='none'},className:'absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105'}),
+    !img&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-white opacity-30 blur-3xl transition-transform duration-700 group-hover:scale-125 [animation:bob_7s_ease-in-out_infinite]'}),
+    !img&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-black opacity-30 blur-3xl [animation:bob_9s_ease-in-out_infinite]'}),
     h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent'}),
     h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100',style:{background:'radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 65%)'}}),
     h(Edge,{bg:'linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))'}),
@@ -551,7 +562,7 @@ function Panel({s}){
     s.href&&h('a',{href:s.href,className:`mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03] ${focusRing}`},'View full portfolio',h('span',{'aria-hidden':true},'→')),
     !items&&h('span',{className:'mt-6 inline-flex rounded-full border border-line px-4 py-1.5 text-[12px] font-bold uppercase tracking-[.16em] text-glow'},'Coming soon'));
   const card=(it,n)=>{
-    if(s.cards){const [l,g]=it;return h(Project,{n,label:l,grad:g,href:s.href,onAct:()=>setAct(n)})}
+    if(s.cards){const [l,g,im]=it;return h(Project,{n,label:l,grad:g,img:im,href:s.href,onAct:()=>setAct(n)})}
     if(s.chips){const [i,l,sub]=it;return s.wide
       ?h(Tile,{className:'p-5'},h('span',{className:'absolute right-1 top-0 text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0')),h('div',{className:'flex items-center gap-4'},h(Float,null,h('div',{className:'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line text-2xl',style:bubble(n)},i)),h('div',null,h('div',{className:'text-[17px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[14px] font-medium leading-snug text-dim'},sub))))
       :h(Tile,{className:'p-7'},h('div',{className:'flex items-start justify-between'},h(Float,null,h('div',{className:'flex h-16 w-16 items-center justify-center rounded-full border border-line text-3xl',style:bubble(n)},i)),h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'))),h('div',{className:'mt-10 text-[24px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[15px] font-medium text-dim'},sub))}
