@@ -40,37 +40,20 @@ html[data-motion="off"],html[data-motion="off"] *{transition-duration:.01s!impor
 <script>
 /* ===================== AUDIO (Web Audio, fully synthesised, no files) ===================== */
 const AUDIO=(()=>{
-  let ctx,master,ambF,rainG,wb,vol=.5,depth=0,lastD=-1,wx='sunny';
+  let ctx,master,wb,vol=.5,wx='sunny';
   const level=()=>vol*vol;
   const noise=(type)=>{const n=ctx.sampleRate*3,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);let l=0;
     for(let i=0;i<n;i++){const w=Math.random()*2-1;if(type==='brown'){l=(l+.02*w)/1.02;d[i]=l*3.5}else d[i]=w}return b};
-  const loop=buf=>{const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s};
-  /* calm ambient pad: four slow chords that glide into each other (no random sound effects) */
-  const CH=[[146.83,185,220,277.18],[123.47,146.83,185,220],[98,146.83,196,246.94],[110,164.81,220,246.94]];let ci=0;const pad=[];
-  function setDepth(d,force){
-    depth=d;if(!ctx||(!force&&Math.abs(d-lastD)<.01))return;
-    lastD=d;ambF.frequency.setTargetAtTime(1500-950*d,ctx.currentTime,.3);
-  }
-  function setWeather(n){wx=n;if(rainG)rainG.gain.setTargetAtTime(n==='rain'?.1:0,ctx.currentTime,1.5)}
+  function setDepth(){}
+  function setWeather(n){wx=n}
   function setVolume(v){vol=v;if(master)master.gain.setTargetAtTime(level(),ctx.currentTime,.05)}
+  /* no background music: the audio context only exists for the click whoosh */
   function start(){
     if(ctx){ctx.resume();return}
     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     try{ctx=new AC()}catch(e){ctx=null;return}
     master=ctx.createGain();master.gain.value=level();master.connect(ctx.destination);
-    const br=noise('brown');wb=noise('white');
-    ambF=ctx.createBiquadFilter();ambF.type='lowpass';ambF.frequency.value=1500;ambF.Q.value=.5;
-    const ag=ctx.createGain();ag.gain.value=.5;
-    const rg=ctx.createGain();rg.gain.value=.12;loop(br).connect(rg);rg.connect(ambF);
-    const sw=ctx.createGain();sw.gain.value=.8;
-    CH[0].forEach((f,v)=>[[1,.035,0],[1,.03,5],[2,.012,0]].forEach(([m,pg,dt])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f*m;o.detune.value=dt;g.gain.value=pg;o.connect(g);g.connect(sw);o.start();pad.push({o,v,m})}));
-    const sl=ctx.createOscillator(),sg=ctx.createGain();sl.frequency.value=.05;sg.gain.value=.2;sl.connect(sg);sg.connect(sw.gain);sl.start();
-    sw.connect(ambF);ambF.connect(ag);ag.connect(master);
-    setInterval(()=>{ci=(ci+1)%CH.length;pad.forEach(p=>p.o.frequency.setTargetAtTime(CH[ci][p.v]*p.m,ctx.currentTime,3))},18000);
-    const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=.08;lg.gain.value=160;lfo.connect(lg);lg.connect(ambF.frequency);lfo.start();
-    const rf=ctx.createBiquadFilter();rf.type='highpass';rf.frequency.value=2500;rainG=ctx.createGain();rainG.gain.value=0;
-    loop(wb).connect(rf);rf.connect(rainG);rainG.connect(master);
-    setDepth(depth,true);setWeather(wx);
+    wb=noise('white');
     document.addEventListener('visibilitychange',()=>{ctx&&(document.hidden?ctx.suspend():ctx.resume())});
   }
   function whoosh(){
@@ -316,7 +299,7 @@ const SECTIONS=[
   'UX/UI graduate based in Singapore. I believe good design quietly helps people reach their goals with less friction.'
 ],
    chips:[['img:singapore-flag-round-circle-icon.png','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
-  {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
+  {id:'projects',label:'Portfolio',portfolio:'portfolio.html',ids:['SingHealth Redesigned','JamsBud','GRID-GO'],zone:'Twilight zone · 45 m',side:'left',
    body:['A glimpse into my design process, creative thinking and problem-solving.'],
    cards:[['SingHealth','from-[#12457a] to-[#5b46c9]',['SingHealth/SingHealth%20Cover%20Page.png','file:///C:/Users/Public/SingHealth/SingHealth%20Cover%20Page.png']],['JamsBud','from-[#0b6a76] to-[#2fd0b0]',['JamsBud/JamsBud_coverpage.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/JamsBud/JamsBud_coverpage.png']],['GRID-GO','from-[#6b2f66] to-[#ff7ad9]',['GRID-GO/Grid-Go Cover Page.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/GRID-GO/Grid-Go Cover Page.png']]]},
   {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
@@ -558,10 +541,10 @@ function Panel({s}){
   const copy=h('div',null,
     (s.body||[]).map((b,i)=>h('p',{key:i,className:wideP?'max-w-[48ch] text-[18px] font-medium leading-relaxed text-ink opacity-80 md:text-[21px]':'max-w-[46ch] text-[17px] font-medium leading-relaxed text-dim md:text-[18px]'},b)),
     s.list&&h('ul',{className:'mt-3 list-disc space-y-1 pl-5 text-[17px] font-medium text-dim marker:text-glow'},s.list.map(x=>h('li',{key:x},x))),
-    s.href&&h('a',{href:s.href,className:`mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03] ${focusRing}`},'View full portfolio',h('span',{'aria-hidden':true},'→')),
+    s.portfolio&&h('a',{href:s.portfolio,className:`mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-[16px] font-bold text-inv transition hover:scale-[1.03] ${focusRing}`},'View full portfolio',h('span',{'aria-hidden':true},'→')),
     !items&&h('span',{className:'mt-6 inline-flex rounded-full border border-line px-4 py-1.5 text-[12px] font-bold uppercase tracking-[.16em] text-glow'},'Coming soon'));
   const card=(it,n)=>{
-    if(s.cards){const [l,g,im]=it;return h(Project,{n,label:l,grad:g,img:im,href:s.href,onAct:()=>setAct(n)})}
+    if(s.cards){const [l,g,im]=it;return h(Project,{n,label:l,grad:g,img:im,href:s.portfolio+'#'+encodeURIComponent(s.ids[n]),onAct:()=>setAct(n)})}
     if(s.chips){const [i,l,sub]=it;return s.wide
       ?h(Tile,{className:'p-5'},h('span',{className:'absolute right-1 top-0 text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0')),h('div',{className:'flex items-center gap-4'},h(Float,null,h('div',{className:'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-line text-2xl',style:bubble(n)},i)),h('div',null,h('div',{className:'text-[17px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[14px] font-medium leading-snug text-dim'},sub))))
       :h(Tile,{className:'p-7'},h('div',{className:'flex items-start justify-between'},h(Float,null,h('div',{className:'flex h-16 w-16 items-center justify-center rounded-full border border-line text-3xl',style:bubble(n)},i)),h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'))),h('div',{className:'mt-10 text-[24px] font-bold leading-tight text-ink'},l),h('div',{className:'mt-1 text-[15px] font-medium text-dim'},sub))}
@@ -595,7 +578,7 @@ function Settings({cfg,setCfg,first,onDone}){
       h('h2',{className:'font-display text-[clamp(34px,5vw,48px)] font-extrabold leading-none text-ink'},first?'Ming Thong':'Motion & sound'),
       first&&h('p',{className:'mt-3 text-[17px] font-medium leading-relaxed text-dim'},'Set the motion and sound to whatever feels comfortable. You can change both later.'),
       h(Slider,{label:'Motion',hint:'Water, fish, jellyfish and parallax. 0% keeps everything still.',value:cfg.motion,onChange:v=>setCfg({...cfg,motion:v})}),
-      h(Slider,{label:'Sound volume',hint:'Ambient water, bubbles and the click whoosh. 0% is silent.',value:cfg.volume,onChange:v=>setCfg({...cfg,volume:v}),onGrab:()=>AUDIO.start()}),
+      h(Slider,{label:'Sound volume',hint:'The click whoosh. 0% is silent.',value:cfg.volume,onChange:v=>setCfg({...cfg,volume:v}),onGrab:()=>AUDIO.start()}),
       h('button',{autoFocus:true,onClick:onDone,className:'mt-7 w-full rounded-full bg-ink px-6 py-3 text-[17px] font-bold text-inv transition hover:scale-[1.02]'},first?'Dive in':'Done')));
 }
 const loadCfg=()=>{
