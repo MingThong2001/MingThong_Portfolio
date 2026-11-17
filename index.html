@@ -319,7 +319,7 @@ const SECTIONS=[
    chips:[['📍','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
   {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
    body:['A glimpse into my design process, creative thinking and problem-solving.'],
-   cards:[['SingHealth','from-[#12457a] to-[#5b46c9]','/SingHealth/SingHealth%20Cover%20Page.png'],['Singapore BBQ','from-[#0b6a76] to-[#2fd0b0]','/SGBBQ/SGBBQ_CoverPage.png'],['Mental Health','from-[#6b2f66] to-[#ff7ad9]','/Graphic%20Novel/MentalHealth%20Coverpage.png']]},
+   cards:[['SingHealth','from-[#12457a] to-[#5b46c9]',['SingHealth/SingHealth%20Cover%20Page.png','file:///C:/Users/Public/SingHealth/SingHealth%20Cover%20Page.png']],['Singapore BBQ','from-[#0b6a76] to-[#2fd0b0]',['SGBBQ/SGBBQ_CoverPage.png','file:///C:/Users/Public/SGBBQ/SGBBQ_CoverPage.png']],['Mental Health','from-[#6b2f66] to-[#ff7ad9]',['Graphic%20Novel/MentalHealth%20Coverpage.png','file:///C:/Users/Public/Graphic%20Novel/MentalHealth%20Coverpage.png']]]},
   {id:'skills',label:'Skills',zone:'Midnight zone · 75 m',side:'right',
    wide:true,
    chips:[
@@ -486,11 +486,11 @@ function Tile({href,ext,className='',children}){
 const Arrow=({className=''})=>h('span',{'aria-hidden':true,className:`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-lg transition-all duration-300 -rotate-45 group-hover:rotate-0 ${className}`},'→');
 /* project card: tall gradient panel that expands when hovered */
 function Project({n,label,grad,img,href,onAct}){
-  const ptr=usePointer(0);
+  const ptr=usePointer(0),srcs=[].concat(img||[]),[k,setK]=useState(0),src=srcs[k];
   return h('a',{...ptr,href,onMouseEnter:onAct,onFocus:onAct,className:`group relative flex h-full min-h-[250px] flex-col justify-between overflow-hidden rounded-[26px] bg-gradient-to-br p-6 text-white md:min-h-[470px] md:p-7 ${grad} ${focusRing}`},
-    img&&h('img',{src:img,alt:'',loading:'lazy',onError:e=>{e.currentTarget.style.display='none'},className:'absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105'}),
-    !img&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-white opacity-30 blur-3xl transition-transform duration-700 group-hover:scale-125 [animation:bob_7s_ease-in-out_infinite]'}),
-    !img&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-black opacity-30 blur-3xl [animation:bob_9s_ease-in-out_infinite]'}),
+    src&&h('img',{key:src,src,alt:'',onError:()=>setK(k+1),className:'absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105'}),
+    !src&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -right-16 -top-20 h-72 w-72 rounded-full bg-white opacity-30 blur-3xl transition-transform duration-700 group-hover:scale-125 [animation:bob_7s_ease-in-out_infinite]'}),
+    !src&&h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-black opacity-30 blur-3xl [animation:bob_9s_ease-in-out_infinite]'}),
     h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent'}),
     h('span',{'aria-hidden':true,className:'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100',style:{background:'radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 65%)'}}),
     h(Edge,{bg:'linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))'}),
