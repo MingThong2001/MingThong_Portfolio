@@ -45,17 +45,11 @@ const AUDIO=(()=>{
   const noise=(type)=>{const n=ctx.sampleRate*3,b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);let l=0;
     for(let i=0;i<n;i++){const w=Math.random()*2-1;if(type==='brown'){l=(l+.02*w)/1.02;d[i]=l*3.5}else d[i]=w}return b};
   const loop=buf=>{const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s};
-  function blip(){
-    if(!ctx||ctx.state!=='running'||vol<=0)return;
-    const t=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain(),f=260+Math.random()*520;
-    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*2.2,t+.09);
-    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+.14);
-    o.connect(g);g.connect(master);o.start(t);o.stop(t+.16);
-  }
-  const sched=()=>{blip();setTimeout(sched,500+Math.random()*2200)};
+  /* calm ambient pad: four slow chords that glide into each other (no random sound effects) */
+  const CH=[[146.83,185,220,277.18],[123.47,146.83,185,220],[98,146.83,196,246.94],[110,164.81,220,246.94]];let ci=0;const pad=[];
   function setDepth(d,force){
     depth=d;if(!ctx||(!force&&Math.abs(d-lastD)<.01))return;
-    lastD=d;ambF.frequency.setTargetAtTime(750-520*d,ctx.currentTime,.3);
+    lastD=d;ambF.frequency.setTargetAtTime(1500-950*d,ctx.currentTime,.3);
   }
   function setWeather(n){wx=n;if(rainG)rainG.gain.setTargetAtTime(n==='rain'?.1:0,ctx.currentTime,1.5)}
   function setVolume(v){vol=v;if(master)master.gain.setTargetAtTime(level(),ctx.currentTime,.05)}
@@ -65,13 +59,18 @@ const AUDIO=(()=>{
     try{ctx=new AC()}catch(e){ctx=null;return}
     master=ctx.createGain();master.gain.value=level();master.connect(ctx.destination);
     const br=noise('brown');wb=noise('white');
-    ambF=ctx.createBiquadFilter();ambF.type='lowpass';ambF.frequency.value=700;ambF.Q.value=.7;
+    ambF=ctx.createBiquadFilter();ambF.type='lowpass';ambF.frequency.value=1500;ambF.Q.value=.5;
     const ag=ctx.createGain();ag.gain.value=.5;
-    loop(br).connect(ambF);ambF.connect(ag);ag.connect(master);
+    const rg=ctx.createGain();rg.gain.value=.12;loop(br).connect(rg);rg.connect(ambF);
+    const sw=ctx.createGain();sw.gain.value=.8;
+    CH[0].forEach((f,v)=>[[1,.035,0],[1,.03,5],[2,.012,0]].forEach(([m,pg,dt])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f*m;o.detune.value=dt;g.gain.value=pg;o.connect(g);g.connect(sw);o.start();pad.push({o,v,m})}));
+    const sl=ctx.createOscillator(),sg=ctx.createGain();sl.frequency.value=.05;sg.gain.value=.2;sl.connect(sg);sg.connect(sw.gain);sl.start();
+    sw.connect(ambF);ambF.connect(ag);ag.connect(master);
+    setInterval(()=>{ci=(ci+1)%CH.length;pad.forEach(p=>p.o.frequency.setTargetAtTime(CH[ci][p.v]*p.m,ctx.currentTime,3))},18000);
     const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=.08;lg.gain.value=160;lfo.connect(lg);lg.connect(ambF.frequency);lfo.start();
     const rf=ctx.createBiquadFilter();rf.type='highpass';rf.frequency.value=2500;rainG=ctx.createGain();rainG.gain.value=0;
     loop(wb).connect(rf);rf.connect(rainG);rainG.connect(master);
-    setDepth(depth,true);setWeather(wx);sched();
+    setDepth(depth,true);setWeather(wx);
     document.addEventListener('visibilitychange',()=>{ctx&&(document.hidden?ctx.suspend():ctx.resume())});
   }
   function whoosh(){
@@ -316,7 +315,7 @@ const SECTIONS=[
   body: [
   'UX/UI graduate based in Singapore. I believe good design quietly helps people reach their goals with less friction.'
 ],
-   chips:[['📍','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
+   chips:[['img:singapore-flag-round-circle-icon.png','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
   {id:'projects',label:'Portfolio',href:'portfolio.html',zone:'Twilight zone · 45 m',side:'left',
    body:['A glimpse into my design process, creative thinking and problem-solving.'],
    cards:[['SingHealth','from-[#12457a] to-[#5b46c9]',['SingHealth/SingHealth%20Cover%20Page.png','file:///C:/Users/Public/SingHealth/SingHealth%20Cover%20Page.png']],['JamsBud','from-[#0b6a76] to-[#2fd0b0]',['JamsBud/JamsBud_coverpage.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/JamsBud/JamsBud_coverpage.png']],['GRID-GO','from-[#6b2f66] to-[#ff7ad9]',['GRID-GO/Grid-Go Cover Page.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/GRID-GO/Grid-Go Cover Page.png']]]},
@@ -504,7 +503,7 @@ function Project({n,label,grad,img,href,onAct}){
 /* About / Skills / Game: one two-column layout, intro on the left, content on the right */
 function WideLayout({s,idx,eyebrow}){
   const items=s.chips||[],isSkills=!!s.wide;
-  const orb=(i,sz,n)=>h(Float,null,h('div',{className:'flex shrink-0 items-center justify-center rounded-full border border-line',style:{...bubble(n),width:sz,height:sz,fontSize:Math.round(sz*.46)}},i));
+  const orb=(i,sz,n)=>h(Float,null,h('div',{className:'flex shrink-0 items-center justify-center rounded-full border border-line',style:{...bubble(n),width:sz,height:sz,fontSize:Math.round(sz*.46)}},typeof i==='string'&&i.startsWith('img:')?h('img',{src:i.slice(4),alt:'Singapore flag',draggable:false,onError:e=>{const t=e.currentTarget;if(!t.dataset.f){t.dataset.f=1;t.src='file:///C:/Users/mingt/Desktop/MingThong_Portfolio/'+i.slice(4)}else t.style.display='none'},className:'h-[78%] w-[78%] rounded-full object-contain'}):i));
   const tag=n=>h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'));
   const glowOrb=h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-14 -right-14 h-48 w-48 rounded-full bg-glow opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-40'});
   const about=(it,n)=>{const [i,l,sub]=it,big=n===0;
@@ -534,7 +533,7 @@ function WideLayout({s,idx,eyebrow}){
     :isSkills
       ?h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*70,className:`h-full ${spans[n]||'md:col-span-3'}`},skill(it,n))))
       :h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*100,className:`h-full ${n===0?'sm:col-span-2':''}`},about(it,n))));
-  return h('section',{id:s.id,className:'flex min-h-[100svh] items-center px-[5vw] py-16 md:px-[7vw]'},
+  return h('section',{id:s.id,className:'relative z-10 flex min-h-[100svh] items-center px-[5vw] py-16 md:px-[7vw]'},
     h(Rise,{className:'mx-auto w-full max-w-[1240px]'},
       h('div',{className:'relative overflow-hidden rounded-[40px] p-6 md:p-10',style:glassStyle},
         h(Edge,{bg:'linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.08) 40%,rgba(255,255,255,.08) 60%,rgba(255,255,255,.3))'}),
