@@ -398,7 +398,7 @@ function Chrome({weather,onWeather,onSettings}){
     h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-end px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
       h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:`flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full md:hidden ${chip}`},
         [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 rounded bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
-    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-5 top-1/2 z-50 hidden -translate-y-1/2 flex-col gap-1 rounded-[28px] p-2 shadow-[0_20px_50px_-20px_rgba(0,10,25,.45)] md:flex ${chip}`},
+    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-1/2 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 hidden -translate-x-1/2 flex-row gap-1 rounded-[28px] p-2 shadow-[0_20px_50px_-20px_rgba(0,10,25,.45)] md:flex ${chip}`},
       SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>open_(s),'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex w-[68px] flex-col items-center gap-1 rounded-[20px] px-1 py-2.5 transition ${i===active?'bg-ink text-inv':'text-dim hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink'} ${focusRing}`},
         NAV_ICONS[s.id],
         h('span',{className:'text-[11px] font-semibold leading-none'},s.label)))),
