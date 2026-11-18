@@ -392,16 +392,17 @@ const NAV_ICONS={
   contact:ico('M3 6h18v12H3z','M3 7l9 6 9-6')
 };
 function Chrome({weather,onWeather,onSettings}){
-  const {p,active}=useDive(),[open,setOpen]=useState(false);
+  const {p,active}=useDive(),[open,setOpen]=useState(false),[hide,setHide]=useState(false),lock=useRef(0);
+  useEffect(()=>{let y=scrollY;const sc=()=>{const d=scrollY-y;y=scrollY;if(performance.now()<lock.current)return;if(scrollY<80||d<-6)setHide(false);else if(d>6)setHide(true)},mm=e=>{if(e.clientY<70)setHide(false)};addEventListener('scroll',sc,{passive:true});addEventListener('mousemove',mm);return()=>{removeEventListener('scroll',sc);removeEventListener('mousemove',mm)}},[]);
   const top=`calc(${p*100}% - ${p*12}px)`;
   return h(React.Fragment,null,
     h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-end px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
       h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:`flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full md:hidden ${chip}`},
         [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 rounded bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
-    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-1/2 top-[calc(1rem+env(safe-area-inset-top,0px))] z-50 hidden -translate-x-1/2 flex-row gap-1 rounded-[28px] p-2 shadow-[0_20px_50px_-20px_rgba(0,10,25,.45)] md:flex ${chip}`},
-      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>open_(s),'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex w-[68px] flex-col items-center gap-1 rounded-[20px] px-1 py-2.5 transition ${i===active?'bg-ink text-inv':'text-dim hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink'} ${focusRing}`},
+    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-1/2 top-[calc(.75rem+env(safe-area-inset-top,0px))] z-50 hidden -translate-x-1/2 flex-row gap-0.5 rounded-full p-1 shadow-[0_10px_30px_-14px_rgba(0,10,25,.45)] transition-transform duration-300 focus-within:translate-y-0 md:flex ${hide?'-translate-y-[160%]':''} ${chip}`},
+      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{lock.current=performance.now()+2500;setHide(false);open_(s)},'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex items-center gap-2 rounded-full px-3.5 py-2 transition [&_svg]:h-4 [&_svg]:w-4 ${i===active?'bg-ink text-inv':'text-dim hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink'} ${focusRing}`},
         NAV_ICONS[s.id],
-        h('span',{className:'text-[11px] font-semibold leading-none'},s.label)))),
+        h('span',{className:'text-[13px] font-semibold leading-none'},s.label)))),
     h('div',{'data-ui':1,className:`fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-glass backdrop-blur-3xl transition-all duration-500 md:hidden ${open?'opacity-100':'pointer-events-none opacity-0'}`},
       SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{setOpen(false);open_(s)},style:{transitionDelay:open?i*60+'ms':'0ms'},className:`font-display text-4xl font-bold transition-all duration-500 ${open?'translate-y-0':'translate-y-4'} ${i===active?'text-glow':'text-ink'}`},s.label))),
     h('div',{'aria-hidden':true,className:'pointer-events-none fixed right-6 top-1/2 z-40 hidden h-[44vh] w-0.5 -translate-y-1/2 rounded bg-line md:block'},

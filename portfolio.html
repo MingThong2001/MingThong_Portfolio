@@ -41,7 +41,18 @@ h2{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-tra
 .pill:hover{background:var(--pri);color:var(--on)}.link:hover,.back:hover{transform:scale(1.05)}
 .rv{opacity:0;filter:blur(8px);transform:translateY(48px);transition:all 1s ease-out}.rv.on{opacity:1;filter:none;transform:none}
 html[data-motion="off"],html[data-motion="off"] *{transition-duration:.01s!important;animation:none!important}
-</style></head><body><div class="wrap" id="app"></div>
+.gnav{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:5;display:flex;flex-direction:row;gap:2px;padding:4px;border-radius:999px;border:1px solid var(--line);background:rgba(3,21,40,.78);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);box-shadow:0 10px 30px -14px rgba(0,10,25,.45);transition:transform .3s}
+.gnav.off{transform:translate(-50%,-160%)}
+.gnav:focus-within{transform:translateX(-50%)}
+.gnav a{display:flex;flex-direction:row;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;color:var(--mut);text-decoration:none;transition:background .2s,color .2s}
+.gnav a:hover{background:color-mix(in srgb,var(--ink) 8%,transparent);color:var(--ink)}
+.gnav a[aria-current]{background:var(--ink);color:var(--on)}
+.gnav a:focus-visible{outline:2px solid var(--pri);outline-offset:4px}
+.gnav svg{width:16px;height:16px;flex:none}
+.gnav span{font-size:13px;font-weight:600;line-height:1;white-space:nowrap}
+.wrap{padding-top:80px}
+@media(max-width:560px){.gnav a{padding:8px 11px}.gnav span{display:none}}
+</style></head><body><nav class="gnav" aria-label="Primary"><a href="index.html#home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span>Home</span></a><a href="index.html#about" aria-label="About Me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>About Me</span></a><a href="#" aria-label="Portfolio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg><span>Portfolio</span></a><a href="index.html#skills" aria-label="Skills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Skills</span></a><a href="index.html#game" aria-label="Game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 014 4v2a3 3 0 01-5.2 2L15 14H9l-1.8 2A3 3 0 012 14v-2a4 4 0 014-4z"/><path d="M7 11v3"/><path d="M5.5 12.5h3"/><path d="M16 12h.01"/><path d="M18 13.5h.01"/></svg><span>Game</span></a><a href="index.html#contact" aria-label="Contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><span>Contact</span></a></nav><div class="wrap" id="app"></div>
 <script>
 /* ============================================================
    EDIT HERE. Add / remove projects. Each project has:
@@ -222,4 +233,9 @@ try{const c=JSON.parse(localStorage.getItem("dive-cfg"));if(c&&c.motion<.05)docu
 })();
 function route(){const id=decodeURIComponent(location.hash.slice(1)),p=PROJECTS.find(x=>x.id===id);p?detail(p):home()}
 addEventListener("hashchange",route);route();
+</script><script>
+/* nav slides away while scrolling down, returns on scroll up, near the top edge, or when focused */
+(()=>{const n=document.querySelector('.gnav');if(!n)return;let y=scrollY;
+addEventListener('scroll',()=>{const d=scrollY-y;y=scrollY;if(scrollY<80||d<-6)n.classList.remove('off');else if(d>6)n.classList.add('off')},{passive:true});
+addEventListener('mousemove',e=>{if(e.clientY<70)n.classList.remove('off')});})();
 </script></body></html>
