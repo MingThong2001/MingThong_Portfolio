@@ -296,9 +296,10 @@ const SECTIONS=[
   {id:'home',label:'Home'},
   {id:'about',label:'About Me',zone:'Sunlight zone · 20 m',side:'right',
   body: [
-  'UX/UI graduate based in Singapore. I believe good design quietly helps people reach their goals with less friction.'
+  'Creating experiences that work for people, make sense for businesses, and deliver lasting value.'
 ],
-   chips:[['img:singapore-flag-round-circle-icon.png','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']]},
+   chips:[['img:singapore-flag-round-circle-icon.png','Singapore','Based in'],['🔍','Strategy','UX research'],['🎨','Interaction','UI design']],
+   photo:'about-photo.jpg',approach:{title:'My Approach to Design',items:[[0,'User Needs','Understanding user behaviours, needs and pain points.'],[1,'Business Goals','Considering business objectives, value and opportunities.'],[2,'Technical Feasibility','Working within technical constraints to develop practical solutions.']]}},
   {id:'projects',label:'Portfolio',portfolio:'portfolio.html',ids:['SingHealth Redesigned','JamsBud','GRID-GO'],zone:'Twilight zone · 45 m',side:'left',
    body:['A glimpse into my design process, creative thinking and problem-solving.'],
    cards:[['SingHealth','from-[#12457a] to-[#5b46c9]',['SingHealth/SingHealth%20Cover%20Page.png','file:///C:/Users/Public/SingHealth/SingHealth%20Cover%20Page.png']],['JamsBud','from-[#0b6a76] to-[#2fd0b0]',['JamsBud_coverpage.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/JamsBud_coverpage.png']],['GRID-GO','from-[#6b2f66] to-[#ff7ad9]',['GRID-GO/Grid-Go Cover Page.png','file:///C:/Users/mingt/Desktop/MingThong_Portfolio/GRID-GO/Grid-Go Cover Page.png']]]},
@@ -399,8 +400,8 @@ function Chrome({weather,onWeather,onSettings}){
     h('header',{className:'fixed inset-x-0 top-0 z-50 flex items-center justify-end px-4 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] md:px-7'},
       h('button',{'data-ui':1,'aria-label':'Menu','aria-expanded':open,onClick:()=>setOpen(!open),className:`flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full md:hidden ${chip}`},
         [0,1].map(i=>h('span',{key:i,className:`h-0.5 w-5 rounded bg-ink transition-transform duration-300 ${open?(i?'-translate-y-1 -rotate-45':'translate-y-1 rotate-45'):''}`})))),
-    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-1/2 top-[calc(.75rem+env(safe-area-inset-top,0px))] z-50 hidden -translate-x-1/2 flex-row gap-0.5 rounded-full p-1 shadow-[0_10px_30px_-14px_rgba(0,10,25,.45)] transition-transform duration-300 focus-within:translate-y-0 md:flex ${hide?'-translate-y-[160%]':''} ${chip}`},
-      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{lock.current=performance.now()+2500;setHide(false);open_(s)},'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex items-center gap-2 rounded-full px-3.5 py-2 transition [&_svg]:h-4 [&_svg]:w-4 ${i===active?'bg-ink text-inv':'text-dim hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)] hover:text-ink'} ${focusRing}`},
+    h('nav',{'data-ui':1,'aria-label':'Primary',className:`fixed left-1/2 top-[calc(.75rem+env(safe-area-inset-top,0px))] z-50 hidden -translate-x-1/2 flex-row gap-0.5 rounded-full p-1 shadow-[0_16px_36px_-10px_rgba(0,10,25,.7),0_0_0_1px_rgba(0,0,0,.12)] transition-transform duration-300 focus-within:translate-y-0 md:flex ${hide?'-translate-y-[160%]':''} border border-[color-mix(in_srgb,var(--inv)_25%,transparent)] bg-ink`},
+      SECTIONS.map((s,i)=>h('button',{key:s.id,onClick:()=>{lock.current=performance.now()+2500;setHide(false);open_(s)},'aria-label':s.label,'aria-current':i===active?'true':undefined,className:`flex items-center gap-2 rounded-full px-3.5 py-2 transition [&_svg]:h-4 [&_svg]:w-4 ${i===active?'bg-inv text-ink':'text-[color-mix(in_srgb,var(--inv)_78%,transparent)] hover:bg-[color-mix(in_srgb,var(--inv)_16%,transparent)] hover:text-inv'} ${focusRing} focus-visible:!outline-inv`},
         NAV_ICONS[s.id],
         h('span',{className:'text-[13px] font-semibold leading-none'},s.label)))),
     h('div',{'data-ui':1,className:`fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-glass backdrop-blur-3xl transition-all duration-500 md:hidden ${open?'opacity-100':'pointer-events-none opacity-0'}`},
@@ -494,7 +495,7 @@ function WideLayout({s,idx,eyebrow}){
   const orb=(i,sz,n)=>h(Float,null,h('div',{className:'flex shrink-0 items-center justify-center rounded-full border border-line',style:{...bubble(n),width:sz,height:sz,fontSize:Math.round(sz*.46)}},typeof i==='string'&&i.startsWith('img:')?h('img',{src:i.slice(4),alt:'Singapore flag',draggable:false,onError:e=>{const t=e.currentTarget;if(!t.dataset.f){t.dataset.f=1;t.src='file:///C:/Users/mingt/Desktop/MingThong_Portfolio/'+i.slice(4)}else t.style.display='none'},className:'h-[78%] w-[78%] rounded-full object-contain'}):i));
   const tag=n=>h('span',{className:'text-[11px] font-bold tracking-[.2em] text-dim opacity-60'},String(n+1).padStart(2,'0'));
   const glowOrb=h('span',{'aria-hidden':true,className:'pointer-events-none absolute -bottom-14 -right-14 h-48 w-48 rounded-full bg-glow opacity-20 blur-2xl transition-opacity duration-500 group-hover:opacity-40'});
-  const about=(it,n)=>{const [i,l,sub]=it,big=n===0;
+  const about=(it,n)=>{const [i,l,sub]=it,big=false;
     const txt=h('div',{className:'min-w-0'},h('div',{className:'text-[12px] font-bold uppercase tracking-[.18em] text-dim'},sub),h('div',{className:`mt-2 font-display font-extrabold leading-none tracking-[-.02em] text-ink ${big?'text-[clamp(38px,4.4vw,58px)]':'text-[clamp(22px,2.3vw,30px)]'}`},l));
     return h(Tile,{className:big?'p-7 md:p-8':'p-6'},glowOrb,
       big?h('div',{className:'relative flex items-center gap-6'},orb(i,92,n),txt,h('span',{className:'ml-auto self-start'},tag(n)))
@@ -521,17 +522,39 @@ function WideLayout({s,idx,eyebrow}){
     ?h(Rise,{delay:120,className:'h-full'},screen)
     :isSkills
       ?h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*70,className:`h-full ${spans[n]||'md:col-span-3'}`},skill(it,n))))
-      :h('div',{className:'grid h-full grid-cols-1 gap-3 sm:grid-cols-2'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*100,className:`h-full ${n===0?'sm:col-span-2':''}`},about(it,n))));
+      :h('div',{className:'grid h-full grid-cols-1 gap-3 md:grid-cols-3'},items.map((it,n)=>h(Rise,{key:it[0]+it[1],delay:n*100,className:'h-full'},about(it,n))));
+  /* About only: "My approach to design" (three pillars) + closing quote */
+  const APP_ICONS=[
+    ico('M9 11a4 4 0 100-8 4 4 0 000 8z','M2 21c0-4 3-6.5 7-6.5s7 2.500 7 6.5','M16 3.500a4 4 0 010 7.500','M22 21c0-3-1.500-5-4-6'),
+    ico('M12 21a9 9 0 100-18 9 9 0 000 18z','M12 16.500a4.500 4.500 0 100-9 4.500 4.500 0 000 9z','M12 12h.01','M12 12l7-7','M16 5h3v3'),
+    ico('M8 8l-5 4 5 4','M16 8l5 4-5 4','M14 4l-4 16')
+  ];
+  const approach=s.approach&&h(Rise,{delay:150},
+    h('div',{className:'relative overflow-hidden rounded-[28px] p-7 md:p-10',style:introStyle},
+      h(Edge,{bg:'linear-gradient(var(--line),var(--line))'}),
+      h('div',{className:'relative'},
+        h('div',{className:'flex items-center gap-3 text-[12px] font-bold uppercase tracking-[.18em] text-glow'},h('span',{'aria-hidden':true,className:'h-px w-10 bg-glow opacity-60'}),s.approach.title),
+        h('div',{className:'mt-8 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-0'},s.approach.items.map(([ic,l,sub],n)=>
+          h('div',{key:l,className:`flex items-start gap-4 md:flex-col md:gap-5 md:px-8 ${n===0?'md:pl-0':''} ${n===2?'md:pr-0':''} ${n?'md:border-l md:border-line':''}`},
+            h('div',{className:'flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line text-glow [&_svg]:h-7 [&_svg]:w-7',style:{background:'color-mix(in srgb,var(--glow) 12%,transparent)'}},APP_ICONS[ic]),
+            h('div',null,h('div',{className:'text-[22px] font-extrabold leading-tight tracking-[-.02em] text-ink'},l),h('p',{className:'mt-2 max-w-[30ch] text-[15px] font-medium leading-snug text-dim'},sub))))))));
   return h('section',{id:s.id,className:'relative z-10 flex min-h-[100svh] items-center px-[5vw] py-16 md:px-[7vw]'},
     h(Rise,{className:'mx-auto w-full max-w-[1240px]'},
             h('div',{className:'relative'},
         h('div',{className:'relative flex flex-col gap-3'},
-          h('div',{className:'flex flex-col rounded-[28px] p-8 md:p-14',style:introStyle},eyebrow,
-            h('h2',{className:'mt-5 font-display text-[clamp(44px,6.4vw,84px)] font-bold leading-[1.02] tracking-[-.035em] text-ink'},s.label),
+          (()=>{
+            const photo=s.photo&&h('div',{className:'relative w-full shrink-0 md:w-[38%] md:max-w-[440px]'},
+              h('div',{className:'relative aspect-square overflow-hidden rounded-[22px] shadow-[0_30px_60px_-30px_rgba(0,10,25,.6)]'},
+                h('img',{src:s.photo,alt:'Portrait with three fluffy chow chow dogs',draggable:false,onError:e=>{const t=e.currentTarget;if(!t.dataset.f){t.dataset.f=1;t.src='file:///C:/Users/mingt/Desktop/MingThong_Portfolio/'+s.photo}else t.style.display='none'},className:'h-full w-full object-cover transition-transform duration-700 hover:scale-105'}),
+                h(Edge,{bg:'linear-gradient(var(--line),var(--line))'})));
+            return h('div',{className:`flex flex-col rounded-[28px] p-8 md:p-14 ${s.photo?'gap-10 md:flex-row md:items-center md:gap-14':''}`,style:introStyle},
+              h(s.photo?'div':React.Fragment,s.photo?{className:'flex min-w-0 flex-col md:flex-1'}:null,eyebrow,            h('h2',{className:'mt-5 font-display text-[clamp(44px,6.4vw,84px)] font-bold leading-[1.02] tracking-[-.035em] text-ink'},s.label),
             null,
             (s.body||[]).map((b,i)=>h('p',{key:i,className:'mt-5 max-w-[30ch] text-[clamp(20px,2.3vw,28px)] font-semibold leading-snug text-dim'},b)),
             isSkills&&h('p',{className:'mt-6 text-[13px] font-bold uppercase tracking-[.18em] text-dim'},String(items.length).padStart(2,'0')+' The skills and practices behind the experiences I create.')),
-          right))));
+              photo);
+          })(),
+          right,approach))));
 }
 function Panel({s}){
   const idx=String(SECTIONS.indexOf(s)).padStart(2,'0'),items=s.chips||s.cards||s.social,[act,setAct]=useState(null),wideP=['about','skills','game'].includes(s.id);
