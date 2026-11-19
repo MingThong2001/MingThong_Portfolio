@@ -35,6 +35,38 @@ h2{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-tra
 .lb{position:fixed;inset:0;background:var(--scrim);z-index:10;display:flex;align-items:center;justify-content:center;padding:24px;animation:fade .2s;cursor:zoom-out}
 .lb img{max-width:100%;max-height:100%;border-radius:8px}
 .x{position:absolute;top:calc(12px + env(safe-area-inset-top,0));right:16px;color:#fff;font-size:32px;min-width:44px;min-height:44px}
+.story{margin-top:56px;display:grid;gap:20px}
+.st{border:1px solid var(--line);background:var(--soft);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:24px;padding:28px 24px}
+@media(min-width:760px){.st{padding:36px 40px}}
+.st-h{display:flex;gap:16px;align-items:flex-start}
+.st-n{flex:none;font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--on);background:var(--pri);border-radius:999px;padding:6px 12px;margin-top:6px}
+.st h3{margin:0;font-size:clamp(24px,4vw,34px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.st-l{margin:8px 0 0;color:var(--mut);font-size:16px;line-height:1.55;max-width:60ch}
+.st-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:24px}
+.st-c{border:1px solid var(--line);background:rgba(3,21,40,.45);border-radius:18px;padding:18px}
+.st-c b{display:block;font-size:clamp(34px,5vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--pri)}
+.st-c strong{display:block;font-size:16px;font-weight:800;margin-top:10px}
+.st-c span{display:block;color:var(--mut);font-size:14px;line-height:1.5;margin-top:4px}
+.st-i{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:10px}
+@media(min-width:760px){.st-i{grid-template-columns:1fr 1fr}}
+.st-i li{border-left:3px solid var(--pri);padding:4px 0 4px 14px}
+.st-i strong{display:block;font-size:16px;font-weight:800}
+.st-i span{display:block;color:var(--mut);font-size:14px;line-height:1.5;margin-top:2px}
+.st-r{display:grid;gap:0;margin-top:12px}
+.st-r div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-top:1px solid var(--line);padding:8px 0}
+.st-r em{font-style:normal;color:var(--mut);font-size:13px;font-weight:600}
+.st-r i{font-style:normal;font-size:22px;font-weight:800;color:var(--pri);line-height:1.1}
+.car{position:relative;margin-top:48px}
+.car-t{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:20px;outline-offset:4px}
+.car-t::-webkit-scrollbar{display:none}
+.car-t:focus-visible{outline:2px solid var(--pri)}
+.car-s{flex:0 0 100%;scroll-snap-align:center;margin:0}
+.car-s .m{display:flex;justify-content:center;background:var(--soft);border:1px solid var(--line)}
+.car-s img,.car-s video{width:auto;max-width:100%;max-height:72vh}
+.car-b{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(3,21,40,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--ink);font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center}
+.car-b.prev{left:12px}.car-b.next{right:12px}
+.car-n{position:absolute;right:12px;bottom:12px;z-index:2;background:rgba(3,21,40,.78);backdrop-filter:blur(12px);border:1px solid var(--line);color:var(--ink);font-size:12px;font-weight:600;padding:5px 10px;border-radius:12px}
+.st-f{margin:16px 0 0;color:var(--mut);font-size:13px}
 @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .pill,.link,.back{transition:background .2s,color .2s,transform .2s}
@@ -84,6 +116,74 @@ const PROJECTS = [
     ],
     tools: ["Figma", "Literature Review", "Heuristic Evaluation", "Competitve Analysis", "User Survey"],
     link: { label: "Open Report", href: "https://canva.link/3rpq1r1o7hokzt0" },
+    story: [
+      {
+        n: "01", h: "The Problem",
+        lead: "Managing healthcare shouldn't feel like solving a puzzle. I surveyed 10 Health Buddy users and four pain points kept coming up.",
+        stats: [
+          ["8/10", "Disjointed experience", "were confused by needing separate apps for different healthcare services."],
+          ["9/10", "Clunky booking", "struggled to book appointments and spot available slots."],
+          ["7/10", "Unclear navigation", "found the visuals and information architecture hard to follow."],
+          ["6/10", "Medication mix-ups", "found managing medications across multiple profiles confusing."]
+        ]
+      },
+      {
+        n: "02", h: "The Constraints",
+        lead: "The goal was to improve the experience without breaking what already works. In healthcare, clarity, accuracy and user confidence come first.",
+        items: [
+          ["Accessible to all", "Designed for elderly users and people with varying digital literacy."],
+          ["Complex, not overwhelming", "Present healthcare information clearly without information overload."],
+          ["Multiple profiles", "Support patients and caregivers managing care for family members."],
+          ["Existing workflows", "Improve appointments and medication while keeping essential functions."]
+        ]
+      },
+      {
+        n: "03", h: "What I Tested",
+        lead: "I combined research, expert evaluation and hands-on prototype testing to find gaps and check my fixes actually worked.",
+        items: [
+          ["User survey", "10 respondents shared their experiences and frustrations."],
+          ["Persona and journeys", "An elderly user persona, journey map and task flows to expose accessibility and navigation hurdles."],
+          ["Heuristic evaluation", "Reviewed the interface against established usability principles."],
+          ["Prototype testing", "2 participants compared old and new designs, rating satisfaction, ease of use and efficiency."]
+        ]
+      },
+      {
+        n: "04", h: "What Failed",
+        lead: "Testing showed some of my early decisions still created friction. That feedback shaped everything that came next.",
+        stats: [
+          ["2/2", "Harsh visuals", "found the first homepage unappealing. The aggressive colours felt far from warm and compassionate."],
+          ["2/2", "Slow rescheduling", "had to scroll through unnecessary fields just to change a date and time."],
+          ["1/2", "Hidden queue info", "overlooked queue details because there was no clear call to action."]
+        ]
+      },
+      {
+        n: "05", h: "What I Changed",
+        lead: "I reworked the interface around fewer steps, clearer hierarchy and easier access to the actions that matter most.",
+        items: [
+          ["Simpler homepage", "Appointments and medication reminders now sit in one central dashboard, with upcoming tasks first."],
+          ["Streamlined appointments", "All actions live on one screen with automatic categorisation, and date and time sit higher in the rescheduling form."],
+          ["One-tap profile switching", "Switch or add profiles without leaving your workflow."],
+          ["Smarter medication view", "Prescriptions, reminders and refills in one place, with colour-coded statuses and clearer dosages."],
+          ["Unified login", "A single Singpass flow with biometric authentication means fewer sign-in steps."]
+        ]
+      },
+      {
+        n: "06", h: "What Happened",
+        lead: "Both participants responded positively, especially on usability, navigation and task efficiency.",
+        rate: [
+          ["Streamlined login", "5.0", "5.0", "5.0"],
+          ["Medication management", "5.0", "4.75", "5.0"],
+          ["Appointment booking", "4.5", "4.75", "4.5"],
+          ["Appointment management", "4.25", "4.75", "4.5"]
+        ],
+        note: "Ratings out of 5 from two participants. These are selected feature ratings, not an overall app score.",
+        after: [
+          ["2/2 preferred the new login", "Participants chose the redesigned login experience."],
+          ["2/2 preferred the new medication flow", "The consolidated workflow won them over."],
+          ["Easier booking", "Clearer availability indicators and fewer unnecessary interactions."]
+        ]
+      }
+    ],
     media: [
       { type: "image", src: "SingHealth/SingHealth_1.png", caption: "", full: true },
       { type: "image", src: "SingHealth/SingHealth_2.png" },
@@ -173,6 +273,28 @@ function home(){
  reveal();
  window.scrollTo(0,0);
 }
+function storyHTML(s){
+ return `<section class="story">${s.map(x=>`<div class="st"><div class="st-h"><span class="st-n">${esc(x.n)}</span><div><h3>${esc(x.h)}</h3><p class="st-l">${esc(x.lead)}</p></div></div>`
+ +(x.stats?`<div class="st-g">${x.stats.map(([a,b,c])=>`<div class="st-c"><b>${esc(a)}</b><strong>${esc(b)}</strong><span>${esc(c)}</span></div>`).join("")}</div>`:"")
+ +(x.items?`<ul class="st-i">${x.items.map(([a,b])=>`<li><strong>${esc(a)}</strong><span>${esc(b)}</span></li>`).join("")}</ul>`:"")
+ +(x.rate?`<div class="st-g">${x.rate.map(([n,a,b,c])=>`<div class="st-c"><strong style="margin-top:0">${esc(n)}</strong><div class="st-r"><div><em>Satisfaction</em><i>${esc(a)}</i></div><div><em>Ease of use</em><i>${esc(b)}</i></div><div><em>Efficiency</em><i>${esc(c)}</i></div></div></div>`).join("")}</div>`:"")
+ +(x.note?`<p class="st-f">${esc(x.note)}</p>`:"")
+ +(x.after?`<ul class="st-i">${x.after.map(([a,b])=>`<li><strong>${esc(a)}</strong><span>${esc(b)}</span></li>`).join("")}</ul>`:"")
+ +`</div>`).join("")}</section>`;
+}
+function carousel(m){
+ if(!m.length)return"";
+ return `<div class="car"><div class="car-t" tabindex="0" aria-label="Project images">${m.map(x=>`<figure class="car-s"><div class="m" ${x.type==="video"?"":'data-zoom="1"'}>${tag(x)}</div>${x.caption?`<figcaption class="cap">${esc(x.caption)}</figcaption>`:""}</figure>`).join("")}</div><button class="car-b prev" aria-label="Previous image">‹</button><button class="car-b next" aria-label="Next image">›</button><span class="car-n" aria-live="polite"></span></div>`;
+}
+function initCar(){
+ const c=app.querySelector(".car");if(!c)return;
+ const t=c.querySelector(".car-t"),n=c.querySelector(".car-n"),s=t.children.length;
+ const upd=()=>{n.textContent=(Math.round(t.scrollLeft/t.clientWidth)+1)+" / "+s};
+ t.addEventListener("scroll",upd,{passive:true});
+ c.querySelector(".prev").onclick=()=>t.scrollBy({left:-t.clientWidth,behavior:"smooth"});
+ c.querySelector(".next").onclick=()=>t.scrollBy({left:t.clientWidth,behavior:"smooth"});
+ upd();
+}
 function detail(p){
  document.title=p.title+" · Portfolio";
  const d=Object.entries(p.details||{});
@@ -181,10 +303,10 @@ function detail(p){
  ${d.length?`<div class="meta">${d.map(([k,v])=>`<div><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("")}</div>`:""}
  <div class="cols"><div>${(p.summary||[]).map(t=>`<p>${esc(t)}</p>`).join("")}</div>
  <div>${p.tools?.length?`<h2>Tools</h2><div class="chips">${p.tools.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}${p.link?`<a class="link" href="${esc(p.link.href)}">${esc(p.link.label)}</a>`:""}</div></div>
- <div class="media">${(p.media||[]).map(m=>`<figure style="margin:0" class="${m.full?"full":""}"><div class="m" ${m.type==="video"?"":'data-zoom="1"'}>${tag(m)}</div>${m.caption?`<figcaption class="cap">${esc(m.caption)}</figcaption>`:""}</figure>`).join("")}</div>`;
- document.getElementById("bk").onclick=()=>{location.hash=""};
+ ${carousel(p.media||[])}${p.story?storyHTML(p.story):""}`;
+ document.getElementById("bk").onclick=()=>{location.hash=""};initCar();
  app.querySelectorAll("[data-zoom] img").forEach(im=>im.parentNode.onclick=()=>zoom(im.src));
- app.querySelectorAll(".meta,.cols,.media figure").forEach(e=>e.classList.add("rv"));reveal();
+ app.querySelectorAll(".meta,.cols,.car,.st").forEach(e=>e.classList.add("rv"));reveal();
  window.scrollTo(0,0);
 }
 function zoom(src){
