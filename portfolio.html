@@ -67,6 +67,21 @@ h2{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-tra
 .car-b.prev{left:12px}.car-b.next{right:12px}
 .car-n{position:absolute;right:12px;bottom:12px;z-index:2;background:rgba(3,21,40,.78);backdrop-filter:blur(12px);border:1px solid var(--line);color:var(--ink);font-size:12px;font-weight:600;padding:5px 10px;border-radius:12px}
 .st-f{margin:16px 0 0;color:var(--mut);font-size:13px}
+.ft{position:relative;z-index:1;width:100%;border-top:1px solid var(--line);background:rgba(3,21,40,.88);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);padding:48px 6vw calc(5rem + env(safe-area-inset-bottom,0px))}
+@media(min-width:768px){.ft{padding-left:9vw;padding-right:9vw}}
+.ft-in{max-width:1100px;margin:0 auto}
+.ft-g{display:grid;gap:32px}
+@media(min-width:768px){.ft-g{grid-template-columns:1.4fr 1fr 1fr}}
+.ft-t{font-size:30px;font-weight:800;line-height:1;color:var(--ink)}
+.ft-p{margin:12px 0 0;max-width:34ch;font-size:16px;font-weight:500;line-height:1.6;color:var(--mut)}
+.ft h4{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--pri)}
+.ft ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ft li a{font-size:15px;font-weight:600;color:var(--mut);text-decoration:none;transition:color .2s}
+.ft li a:hover{color:var(--ink)}
+.ft-b{margin-top:32px;padding-top:20px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.ft-b span{font-size:14px;font-weight:600;color:var(--mut)}
+.ft-b a{border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;transition:background .2s,color .2s}
+.ft-b a:hover{background:var(--ink);color:var(--on)}
 @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .pill,.link,.back{transition:background .2s,color .2s,transform .2s}
@@ -85,6 +100,23 @@ html[data-motion="off"],html[data-motion="off"] *{transition-duration:.01s!impor
 .wrap{padding-top:80px}
 @media(max-width:560px){.gnav a{padding:8px 11px}.gnav span{display:none}}
 </style></head><body><nav class="gnav" aria-label="Primary"><a href="index.html#home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span>Home</span></a><a href="index.html#about" aria-label="About Me"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 100-8 4 4 0 000 8z"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>About Me</span></a><a href="#" aria-label="Portfolio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg><span>Portfolio</span></a><a href="index.html#skills" aria-label="Skills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg><span>Skills</span></a><a href="index.html#game" aria-label="Game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12a4 4 0 014 4v2a3 3 0 01-5.2 2L15 14H9l-1.8 2A3 3 0 012 14v-2a4 4 0 014-4z"/><path d="M7 11v3"/><path d="M5.5 12.5h3"/><path d="M16 12h.01"/><path d="M18 13.5h.01"/></svg><span>Game</span></a><a href="index.html#contact" aria-label="Contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg><span>Contact</span></a></nav><div class="wrap" id="app"></div>
+<footer class="ft"><div class="ft-in"><div class="ft-g">
+<div><div class="ft-t">Ming Thong</div><p class="ft-p">UX/UI designer and Experience Strategist based in Singapore.</p></div>
+<nav aria-label="Footer"><h4>Explore</h4><ul>
+<li><a href="index.html#home">Home</a></li>
+<li><a href="index.html#about">About Me</a></li>
+<li><a href="portfolio.html">Portfolio</a></li>
+<li><a href="index.html#skills">Skills</a></li>
+<li><a href="index.html#game">Game</a></li>
+<li><a href="index.html#contact">Contact</a></li>
+</ul></nav>
+<div><h4>Connect</h4><ul>
+<li><a href="https://www.instagram.com/uxmingui?hvrq=MTRyNHM0emV2bXZyaA==" target="_blank" rel="noopener noreferrer">Instagram ↗</a></li>
+<li><a href="https://www.linkedin.com/in/ming-thong-ooi-0a783418a/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a></li>
+<li><a>GitHub ↗</a></li>
+</ul></div></div>
+<div class="ft-b"><span>© 2026 Ming Thong · Built from scratch</span><a href="index.html#home">↑ Back to the surface</a></div>
+</div></footer>
 <script>
 /* ============================================================
    EDIT HERE. Add / remove projects. Each project has:
