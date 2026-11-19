@@ -199,6 +199,118 @@ const PROJECTS = [
     title: "JamsBud",
     subtitle: "A social music platform for discovering communities, sharing playlists and connecting through collaborative Jam Rooms.",
     tag: "Mobile APP Design",
+    story: [
+      {
+        n: "01", h: "The Opportunity",
+        lead: "Music apps make listening easy, but music is also a shared interest that brings people together. JamsBud combines discovery with social interaction for 18 to 30 year olds who love finding new music and meeting people through it.",
+        items: [
+          ["User acquisition", "Attract music fans who want to discover music and connect."],
+          ["User engagement", "Playlists, messaging and Group Jam give people reasons to interact."],
+          ["User retention", "Recurring social experiences encourage people to return."],
+          ["Differentiation", "Position around shared listening and social music."]
+        ],
+        note: "These were intended opportunities, not measured commercial results. JamsBud is a prototype, not a launched product."
+      },
+      {
+        n: "02", h: "Learning from EQUALS",
+        lead: "EQUALS is a music-focused social app. I studied how it blends music and community, then looked for a direction that was our own rather than a copy.",
+        items: [
+          ["Discovery", "EQUALS: through users' activity and opinions. JamsBud: browse songs and discover music in the app."],
+          ["Social", "EQUALS: opinions, reviews and discussions. JamsBud: direct messaging and shared listening."],
+          ["Community", "EQUALS: chat rooms and fan communities. JamsBud: Group Jam rooms for listening together."],
+          ["Identity", "EQUALS: a personalised Vinyl Wall. JamsBud: customisable profiles, avatars and rooms."]
+        ],
+        note: "Design takeaway: EQUALS centres on opinions and discussion. JamsBud explores collaborative listening."
+      },
+      {
+        n: "03", h: "The Problem",
+        lead: "Social listening adds interactions users may not instantly understand. The challenge was to mix familiar music-app behaviour with new social features without confusing anyone. I set out to test three things.",
+        items: [
+          ["Discoverability", "Can users find key features, especially Group Jam?"],
+          ["Intuitiveness", "Can they use playlists, messages and customisation without help?"],
+          ["Visual clarity", "Can they tell information, controls and actions apart in a visually rich interface?"]
+        ]
+      },
+      {
+        n: "04", h: "The Constraints",
+        lead: "Four tensions shaped the design.",
+        items: [
+          ["Familiar vs original", "Familiar patterns are easy to learn but can feel repetitive."],
+          ["New social patterns", "Group Jam works differently, so users must learn to find, create and join rooms."],
+          ["Identity vs readability", "Colourful artwork needs a strong look without hurting legibility."],
+          ["Prototype limits", "Testing covered workflows, not live streaming, real-time chat or backend."]
+        ]
+      },
+      {
+        n: "05", h: "What I Tested",
+        lead: "After Milestone 1, we ran three rounds of usability testing with three new testers each time, evaluating interaction quality, clarity, intuitiveness and appeal.",
+        items: [
+          ["Think-aloud", "Participants spoke their thoughts while doing tasks."],
+          ["Google Forms", "They rated task difficulty and shared feedback."],
+          ["Success metrics", "Task completion, satisfaction, hints, time on task and error rate."],
+          ["Seven tasks", "Sign in, song browsing, playlists, messaging, Group Jam, avatar and room customisation, and profile editing."]
+        ]
+      },
+      {
+        n: "06", h: "What Failed",
+        lead: "Most tasks were completed, but five findings stood out. Profile editing was the biggest problem: users could not tell which fields were editable, and there was no Save, Cancel or confirmation. That broke two of Nielsen's heuristics, User Control and Freedom and Visibility of System Status.",
+        stats: [
+          ["10", "Hints needed", "to complete profile editing, the most of any task."],
+          ["41.7%", "Slightly challenging", "of testers rated profile editing this way."],
+          ["33.3%", "Very challenging", "of testers found profile editing very hard."]
+        ],
+        items: [
+          ["Repetitive browsing", "Mostly horizontal scrolling and busy artwork made discovery feel samey and cluttered."],
+          ["Fragmented playlists", "Details sat on the left, actions on the right, and the gradient hurt readability."],
+          ["Group Jam lacked cues", "Rooms looked alike and the feature needed 3 hints."],
+          ["Unclear icons", "Customisation icons looked familiar but their meaning wasn't obvious."]
+        ]
+      },
+      {
+        n: "07", h: "What I Changed",
+        lead: "Every change came from participant feedback, not personal preference.",
+        items: [
+          ["More varied browsing", "Mixed horizontal and vertical scrolling, added a Quick Dial and a login reward modal."],
+          ["Clearer playlists", "Grouped info and actions, separated artwork from text, removed the gradient and unneeded description."],
+          ["Easier Group Jam", "Auto-generated room tags like K-Pop, Chill and Study, plus a \"Create Jam Room\" label."],
+          ["Labelled icons", "Added text for Front Left, Front Right, Bottom Left, Centre, Floor and Bottom Right."],
+          ["Profile feedback (recommended)", "Show editable fields, add Save and Cancel, and confirm saved changes. These are design recommendations from testing."]
+        ]
+      },
+      {
+        n: "08", h: "A Stronger Brand",
+        lead: "Early testers felt the original blue didn't suit a music social app. It caused no usability problems, but it lacked personality.",
+        items: [
+          ["The decision", "Primary colour changed from blue to purple."],
+          ["Why purple", "It fits music, creativity, self-expression and connection, and stands out on the dark background."]
+        ],
+        note: "Visual feedback can shape brand identity even when it doesn't affect task completion."
+      },
+      {
+        n: "09", h: "What Happened",
+        lead: "Familiar interactions were easy to learn, while newer social ones needed more guidance.",
+        stats: [
+          ["100%", "Sign-in very easy", "with 0 hints required."],
+          ["72.7%", "Navigation slightly easy", "while 27.3% found it very easy."],
+          ["3", "Hints for Group Jam", "as the unfamiliar pattern needed context."]
+        ],
+        items: [
+          ["Familiar was easy", "Sign-in, browsing and messaging needed minimal help."],
+          ["New needed cues", "Group Jam took extra time and hints."],
+          ["Basics need feedback", "Profile editing proved a simple task still fails without clear controls."]
+        ],
+        note: "These are prototype testing results, not those of a launched app or a statistically representative sample."
+      },
+      {
+        n: "10", h: "Reflection",
+        lead: "I started by thinking about features. Competitor analysis taught me to think about differentiation, and testing taught me that a working feature isn't always an intuitive one.",
+        items: [
+          ["Functional isn't intuitive", "Users completed Group Jam but still needed hints to understand it."],
+          ["Watch real behaviour", "Don't assume users read an interface the way its designers do."]
+        ],
+        note: "Key takeaway: good product design needs the business opportunity, a clear point of difference and continuous checking that users can understand and benefit from the experience."
+      }
+    ],
     cover: { type: "image", src: "JAMsBud/JamsBud_coverpage.png" },
     details: {
       Year: "2026",
@@ -232,6 +344,90 @@ const PROJECTS = [
     tag: "School Project",
     cover: { type: "image", src:"GRID-GO/Grid-Go%20Cover%20Page.png" },
     details: { Year: "2025", Role: "UXUI Designer" },
+    story: [
+      {
+        n: "01", h: "The Problem",
+        lead: "Singapore's EV chargers are spread across multiple operators, each with its own app, availability system and payment method. A charger can show as available, yet be occupied or faulty when you arrive. Access is the problem, not supply.",
+        items: [
+          ["HDB residents", "Limited shared charging and peak-hour congestion."],
+          ["Private residential users", "Restricted access and operator-specific systems."],
+          ["Taxi and private-hire drivers", "Need reliable charging to protect uptime and income."],
+          ["Potential EV buyers", "Hesitate to switch because charging feels uncertain."]
+        ]
+      },
+      {
+        n: "02", h: "The Design Challenge",
+        lead: "How might we make EV charging more predictable and accessible by bringing multiple operators into one platform? Drivers need confidence a charger will be there when they arrive, not just a map of where chargers are.",
+        items: [
+          ["Accessibility", "Clear maps, filters and booking flows make chargers easy to find and use."],
+          ["Transparency", "Pricing, availability and charging information shown upfront."],
+          ["Trust and safety", "Reviews and reliability indicators help drivers decide with confidence."]
+        ]
+      },
+      {
+        n: "03", h: "Research and Approach",
+        lead: "I used user-centred methods to understand the fragmented experience. The key insight: finding a charger is not enough. Drivers need confidence they can actually use it.",
+        items: [
+          ["Real-world framing", "Mapped Singapore's EV charging landscape and ecosystem gaps."],
+          ["Audience analysis", "Studied the needs and constraints of different driver groups."],
+          ["Competitive analysis", "Compared SP App, CDG ENGIE, ChargeWhere.sg and Charge+."],
+          ["Persona", "A frequent EV driver who prioritises predictable charging."],
+          ["Journey mapping", "Examined the current journey for pain points and opportunities."],
+          ["User flows", "Mapped discovery, booking, navigation, charging and payment."]
+        ]
+      },
+      {
+        n: "04", h: "What Wasn't Working",
+        lead: "Research and competitive analysis revealed four gaps in today's charging experience.",
+        items: [
+          ["Fragmented platforms", "Drivers juggle different operator apps just to find and access chargers."],
+          ["Unreliable availability", "Outdated statuses lead to wasted trips to occupied or faulty chargers."],
+          ["Unpredictable waits", "Without reservations or queue management, drivers can't tell when they'll get a charger."],
+          ["Inconsistent payments", "Each operator has its own payment methods and pricing."]
+        ]
+      },
+      {
+        n: "05", h: "What I Designed",
+        lead: "GRIDGO brings the whole journey into one platform, from finding a charger to finishing a session.",
+        items: [
+          ["Unified discovery", "One map and search to explore nearby chargers, filter by distance, type and provider, and view details."],
+          ["Booking and queues", "Reserve a slot or join a virtual queue, with estimated wait times."],
+          ["Guided navigation", "In-app directions with arrival times and location hints to the right charger."],
+          ["Session management", "Authenticate, start and end sessions, and track charging progress in one place."],
+          ["Integrated payment", "One payment experience across operators."],
+          ["Reliability and rewards", "Scores, challenges and rewards that encourage punctual, fair charging."]
+        ]
+      },
+      {
+        n: "06", h: "What Makes GRIDGO Different",
+        lead: "GRIDGO goes beyond showing chargers from different operators. It proposes actively coordinating access so drivers can plan with confidence.",
+        items: [
+          ["Separate apps", "Unified multi-operator charger discovery."],
+          ["Outdated availability", "Real-time verification with confidence indicators."],
+          ["Limited reservations", "Booking and virtual queue management."],
+          ["Inconsistent access", "Coordinated access with time-based usage rules."],
+          ["Fragmented payments", "A unified payment layer."]
+        ]
+      },
+      {
+        n: "07", h: "Feasibility and Limits",
+        lead: "I separated the product vision from what the prototype could realistically show.",
+        items: [
+          ["Demonstrated in the prototype", "Simulated registration and OTP, map and list discovery, mock booking, simulated charging sessions and payment confirmation."],
+          ["Proposed for the future", "Live operator APIs, real-time charger telemetry, GPS navigation, functional virtual queues, a real payment gateway and energy tracking."]
+        ],
+        note: "I also considered risks such as delayed IoT data, GPS inaccuracies, abandoned bookings and payment gateway downtime, with mitigation approaches."
+      },
+      {
+        n: "08", h: "The Outcome",
+        lead: "A proposed end-to-end EV charging experience that brings discovery, booking, navigation, charging and payment into one platform. The prototype demonstrates the intended journey, and the technical proposal outlines what a working multi-operator platform would need.",
+        items: [
+          ["Predictability", "Know availability and waiting times before you travel."],
+          ["Efficiency", "Less time searching for chargers and waiting in queues."],
+          ["Reliability", "Confidence through verified charger information and coordinated access."]
+        ]
+      }
+    ],
     summary: [
       "GRIDGO is a unified EV charging platform in Singapore that addresses the fragmented charging ecosystem, where drivers currently need to switch between multiple operators to locate, book, and use charging stations with unreliable real-time availability. GRIDGO allows users to seamlessly discover nearby chargers, reserve guaranteed time slots, authenticate via QR code, and monitor charging sessions—all within a single integrated app across all charging networks. By combining real-time availability verification with intelligent queue management, GRIDGO transforms a fragmented and unpredictable charging experience into a unified and reliable user journey."
     ],
