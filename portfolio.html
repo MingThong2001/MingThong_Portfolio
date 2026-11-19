@@ -143,6 +143,7 @@ const PROJECTS = [
     title: "SingHealth Redesigned",
     subtitle: "Healthcare App UX/UI Redesign",
     tag: "App design",
+    bg: "linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.72)),linear-gradient(180deg,#258f8a,#fffff7)",
     cover: { type: "image", src: "SingHealth/SingHealth%20Cover%20Page.png" },
     details: {
       Year: "2025",
@@ -238,6 +239,7 @@ const PROJECTS = [
     title: "JamsBud",
     subtitle: "A social music platform for discovering communities, sharing playlists and connecting through collaborative Jam Rooms.",
     tag: "Mobile APP Design",
+    bg: "linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.72)),linear-gradient(180deg,#A01BFF,#FFFFFF)",
     team: [
       ["Ming Thong", "Design Lead, Project Manager & UX/UI Designer", ""],
       ["Javier Low", "UX Designer & QA Tester", "https://www.linkedin.com/in/javier-low-b17b2919a/"],
@@ -389,6 +391,7 @@ const PROJECTS = [
     title: "GRID-GO",
     subtitle: "A unified EV charging platform for seamless discovery, reservations, and real-time charging management.",
     tag: "School Project",
+    bg: "linear-gradient(rgba(0,0,0,.72),rgba(0,0,0,.72)),linear-gradient(180deg,#005461,#FFFFFF)",
     cover: { type: "image", src:"GRID-GO/Grid-Go%20Cover%20Page.png" },
     details: { Year: "2025", Role: "UXUI Designer" },
     story: [
@@ -601,7 +604,7 @@ try{const c=JSON.parse(localStorage.getItem("dive-cfg"));if(c&&c.motion<.05)docu
     setTimeout(()=>{el._pending=false;el._replay=true;el.click();el._replay=false},wait);
   },true);
 })();
-function route(){const id=decodeURIComponent(location.hash.slice(1)),p=PROJECTS.find(x=>x.id===id);p?detail(p):home()}
+function route(){const id=decodeURIComponent(location.hash.slice(1)),p=PROJECTS.find(x=>x.id===id);document.body.style.background=(p&&p.bg)||"";p?detail(p):home()}
 addEventListener("hashchange",route);route();
 </script><script>
 /* nav slides away while scrolling down, returns on scroll up, near the top edge, or when focused */
