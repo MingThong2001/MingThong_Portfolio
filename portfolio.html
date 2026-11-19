@@ -67,6 +67,13 @@ h2{font-size:13px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-tra
 .car-b.prev{left:12px}.car-b.next{right:12px}
 .car-n{position:absolute;right:12px;bottom:12px;z-index:2;background:rgba(3,21,40,.78);backdrop-filter:blur(12px);border:1px solid var(--line);color:var(--ink);font-size:12px;font-weight:600;padding:5px 10px;border-radius:12px}
 .st-f{margin:16px 0 0;color:var(--mut);font-size:13px}
+.team{margin-top:48px}
+.team-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:24px}
+.team-c{display:block;border:1px solid var(--line);background:rgba(3,21,40,.45);border-radius:18px;padding:18px;color:inherit;text-decoration:none;transition:transform .2s,border-color .2s}
+a.team-c:hover{transform:translateY(-3px);border-color:var(--pri)}
+.team-c strong{display:block;font-size:17px;font-weight:800}
+.team-c span{display:block;color:var(--mut);font-size:14px;line-height:1.4;margin-top:4px}
+.team-c em{display:inline-block;margin-top:10px;font-style:normal;font-size:13px;font-weight:700;color:var(--pri)}
 .ft{position:relative;z-index:1;width:100%;border-top:1px solid var(--line);background:rgba(3,21,40,.88);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);padding:48px 6vw calc(5rem + env(safe-area-inset-bottom,0px))}
 @media(min-width:768px){.ft{padding-left:9vw;padding-right:9vw}}
 .ft-in{max-width:1100px;margin:0 auto}
@@ -231,6 +238,14 @@ const PROJECTS = [
     title: "JamsBud",
     subtitle: "A social music platform for discovering communities, sharing playlists and connecting through collaborative Jam Rooms.",
     tag: "Mobile APP Design",
+    team: [
+      ["Ming Thong", "Design Lead, Project Manager & UX/UI Designer", ""],
+      ["Javier Low", "UX Designer & QA Tester", "https://www.linkedin.com/in/javier-low-b17b2919a/"],
+      ["Romanda Goh", "UX Designer", "https://www.linkedin.com/in/romanda-goh/"],
+      ["Winston Ngoui", "Business Strategist & QA Tester", "https://www.linkedin.com/in/winston-ngoui/"],
+      ["Mohammed Ubaidillah bin Mohammed Izam", "Conceptual Artist", "https://www.linkedin.com/in/mohammed-ubaidillah-bin-mohammed-izam-2b1479163/"],
+      ["Lourdes Poh", "Brand Designer", "https://www.linkedin.com/in/lourdes-poh-40164819b/"]
+    ],
     story: [
       {
         n: "01", h: "The Opportunity",
@@ -510,6 +525,11 @@ function storyHTML(s){
  +(x.after?`<ul class="st-i">${x.after.map(([a,b])=>`<li><strong>${esc(a)}</strong><span>${esc(b)}</span></li>`).join("")}</ul>`:"")
  +`</div>`).join("")}</section>`;
 }
+function teamHTML(t){
+ return `<section class="team st"><h3>Meet the team</h3><p class="st-l">JamsBud was a group project. Here is everyone who helped make it happen.</p><div class="team-g">${t.map(([n,r,u])=>{
+  const inner=`<strong>${esc(n)}</strong><span>${esc(r)}</span>${u?`<em>LinkedIn ↗</em>`:""}`;
+  return u?`<a class="team-c" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${inner}</a>`:`<div class="team-c">${inner}</div>`}).join("")}</div></section>`;
+}
 function carousel(m){
  if(!m.length)return"";
  return `<div class="car"><div class="car-t" tabindex="0" aria-label="Project images">${m.map(x=>`<figure class="car-s"><div class="m" ${x.type==="video"?"":'data-zoom="1"'}>${tag(x)}</div>${x.caption?`<figcaption class="cap">${esc(x.caption)}</figcaption>`:""}</figure>`).join("")}</div><button class="car-b prev" aria-label="Previous image">‹</button><button class="car-b next" aria-label="Next image">›</button><span class="car-n" aria-live="polite"></span></div>`;
@@ -531,7 +551,7 @@ function detail(p){
  ${d.length?`<div class="meta">${d.map(([k,v])=>`<div><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("")}</div>`:""}
  <div class="cols"><div>${(p.summary||[]).map(t=>`<p>${esc(t)}</p>`).join("")}</div>
  <div>${p.tools?.length?`<h2>Tools</h2><div class="chips">${p.tools.map(t=>`<span class="chip">${esc(t)}</span>`).join("")}</div>`:""}${p.link?`<a class="link" href="${esc(p.link.href)}">${esc(p.link.label)}</a>`:""}</div></div>
- ${carousel(p.media||[])}${p.story?storyHTML(p.story):""}`;
+ ${p.team?teamHTML(p.team):""}${carousel(p.media||[])}${p.story?storyHTML(p.story):""}`;
  document.getElementById("bk").onclick=()=>{location.hash=""};initCar();
  app.querySelectorAll("[data-zoom] img").forEach(im=>im.parentNode.onclick=()=>zoom(im.src));
  app.querySelectorAll(".meta,.cols,.car,.st").forEach(e=>e.classList.add("rv"));reveal();
